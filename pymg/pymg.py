@@ -116,7 +116,20 @@ def read_source(path: Path) -> bool|list[str]:
     :return: bool|list[str]
     """
 
-    pass
+    try:
+        if path.__str__().endswith('.py'):
+            with open(path, 'r') as source_file:
+                source: list = source_file.readlines()
+
+            return source
+
+        return False
+
+    except FileNotFoundError:
+        return False
+
+    except IsADirectoryError:
+        return False
 
 
 def remove_analysis_file(path: Path) -> None:
