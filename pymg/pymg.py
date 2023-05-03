@@ -65,7 +65,46 @@ def generate_footer(modes: list[str]) -> list[str]:
     :return: list[str]
     """
 
-    pass
+    footer: list = read_json(Path(Path(__file__).parent, 'template', 'FOOTER.json'))['static']
+
+    all_modes: dict = read_json(Path(Path(__file__).parent, 'template', 'FOOTER.json'))['modes']
+
+    if 'standard' in modes:
+        footer.append(all_modes['standard'])
+
+    elif 'trace' in modes:
+        footer.extend(all_modes['trace'])
+
+    else:
+        if 'type' in modes or 'message' in modes:
+            for _ in range(2):
+                footer.pop()
+
+        if 'type' in modes and 'message' in modes:
+            footer.append(all_modes['type'])
+            footer.append(all_modes['message'])
+
+            modes.remove('type')
+            modes.remove('message')
+
+        else:
+            if 'type' in modes:
+                footer.append(all_modes['type'])
+                modes.remove('type')
+
+            elif 'message' in modes:
+                footer.append(all_modes['message'])
+                modes.remove('message')
+
+        for mode in modes:
+            footer.append(all_modes[mode])
+
+            if mode == 'code':
+                footer.append("    print(stack_trace[3])\n")
+
+    footer.append("    print()")
+
+    return footer
 
 
 def read_source(path: Path) -> bool|list[str]:
