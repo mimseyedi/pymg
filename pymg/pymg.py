@@ -175,7 +175,33 @@ def get_syntax(analysis_file: Path) -> tuple[bool, str]:
     :return: tuple[bool, str]
     """
 
-    pass
+    syntax: subprocess.CompletedProcess = subprocess.run([sys.executable, '-m', 'py_compile',
+                                                          analysis_file],
+                                                          capture_output=True)
+
+    if len(syntax.stderr.decode()) > 0:
+        for index, char in enumerate(syntax.stderr.decode()):
+            if char == ',':
+                pymg_msg = syntax.stderr.decode()[index + 2:]
+                break
+
+        message: list = pymg_msg.split("\n")
+
+        message[0] = ': '.join(message[0].split()).capitalize()
+        message[1] = "Code: " + message[1].strip()
+        message[2] = " " * 2 + message[2]
+
+        exception_message: str = message[3]
+
+        for _ in range(2):
+            message.pop()
+
+        message.insert(0, "\nException type: SyntaxError")
+        message.insert(1, f"Exception message: {exception_message}")
+
+        return False, '\n'.join(message)
+
+    return True, 'intact.'
 
 
 def check_syntax(source_file: Path) -> None:
