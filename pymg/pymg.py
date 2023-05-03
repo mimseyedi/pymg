@@ -37,7 +37,7 @@ def read_json(json_path: Path) -> dict:
     :return: dict
     """
 
-    pass
+    return json.loads(json_path.read_text(encoding='utf-8'))
 
 
 def generate_header(source_file: Path) -> list[str]:
