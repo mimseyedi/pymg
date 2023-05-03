@@ -141,7 +141,7 @@ def remove_analysis_file(path: Path) -> None:
     :return: None
     """
 
-    pass
+    os.remove(path=path.__str__())
 
 
 def create_analysis_file(header: list[str], source: list[str], footer: list[str], out: Path) -> None:
