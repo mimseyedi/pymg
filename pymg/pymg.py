@@ -187,7 +187,9 @@ def get_syntax(analysis_file: Path) -> tuple[bool, str]:
 
         message: list = pymg_msg.split("\n")
 
-        message[0] = ': '.join(message[0].split()).capitalize()
+        line_number: str = str(int(message[0].split()[-1]) - 4)
+        
+        message[0] = message[0].split()[0].capitalize() + ": " + line_number
         message[1] = "Code: " + message[1].strip()
         message[2] = " " * 2 + "\033[31m" + message[2] + "\033[0m"
 
