@@ -212,7 +212,18 @@ def check_syntax(source_file: Path) -> None:
     :return: None
     """
 
-    pass
+    header: list = generate_header(source_file=source_file)
+    footer: list = generate_footer(modes=['standard'])
+    source: list = read_source(path=source_file)
+
+    create_analysis_file(header=header,
+                         source=source,
+                         footer=footer,
+                         out=Path(Path(__file__).parent, 'out.py'))
+
+    response, message = get_syntax(Path(Path(__file__).parent, 'out.py'))
+
+    click.echo(message.upper() if response else message)
 
 
 def analyze(source_file: Path, args: list, modes: list) -> None:
