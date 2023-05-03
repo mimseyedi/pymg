@@ -280,7 +280,41 @@ def main(**kwargs):
     more information: https://github.com/mimseyedi/pymg
     """
 
-    pass
+    if kwargs['version'] and len(kwargs['python_file']) == 0:
+        click.echo(VERSION)
+
+    else:
+        if len(kwargs['python_file']) == 0:
+            click.echo(
+                "Usage: pymg [OPTIONS] [PYTHON_FILE]...\nTry 'pymg --help' for help.\n\nError: Missing argument 'PYTHON_FILE...'.")
+
+        else:
+            if kwargs['python_file'][0].endswith('.py'):
+                if Path(kwargs['python_file'][0]).exists():
+
+                    if kwargs['syntax']:
+                        check_syntax(kwargs['python_file'][0])
+
+                    else:
+                        if all(val == False for val in kwargs.values() if isinstance(val, bool)):
+                            analyze(source_file=kwargs['python_file'][0],
+                                    args=kwargs['python_file'][1:],
+                                    modes=['standard'])
+                        else:
+                            options: list = [key for key, value in kwargs.items()
+                                             if value and key not in ['python_file', 'version']]
+
+                            if len(options) > 0 and kwargs['version'] is False:
+                                analyze(source_file=kwargs['python_file'][0],
+                                        args=kwargs['python_file'][1:],
+                                        modes=options)
+                            else:
+                                click.echo(
+                                    f"Usage: pymg [OPTIONS] [PYTHON_FILE]...\nTry 'pymg --help' for help.\n\nError: No such option for this part: -v, --version")
+                else:
+                    click.echo(f"Error: File '{kwargs['python_file'][0]}' does not exist.")
+            else:
+                click.echo(f"Error: The '{kwargs['python_file'][0]}' file must be a Python file.")
 
 
 if __name__ == '__main__':
