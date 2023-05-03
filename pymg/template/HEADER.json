@@ -1,0 +1,3 @@
+{
+  "header": ["import sys\n", "import traceback\n", " ", "try:\n"]
+}
