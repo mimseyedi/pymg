@@ -48,7 +48,11 @@ def generate_header(source_file: Path) -> list[str]:
     :return: list[str]
     """
 
-    pass
+    header: list = read_json(Path(Path(__file__).parent, 'template', 'HEADER.json'))["header"]
+
+    header[2] = f"FILE = '{Path(os.getcwd(), source_file).__str__()}'\n"
+
+    return header
 
 
 def generate_footer(modes: list[str]) -> list[str]:
