@@ -156,7 +156,15 @@ def create_analysis_file(header: list[str], source: list[str], footer: list[str]
     :return: None
     """
 
-    pass
+    source: list = list(map(lambda x: "    " + x, source))
+
+    analysis_text: list = [*header, *source, *footer]
+
+    if out.exists():
+        remove_analysis_file(path=out)
+
+    with open(out, "w+") as analysis_file:
+        analysis_file.write(''.join(analysis_text))
 
 
 def get_syntax(analysis_file: Path) -> tuple[bool, str]:
