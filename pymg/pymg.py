@@ -189,7 +189,7 @@ def get_syntax(analysis_file: Path) -> tuple[bool, str]:
 
         message[0] = ': '.join(message[0].split()).capitalize()
         message[1] = "Code: " + message[1].strip()
-        message[2] = " " * 2 + message[2]
+        message[2] = " " * 2 + "\033[31m" + message[2] + "\033[0m"
 
         exception_message: str = message[3]
 
