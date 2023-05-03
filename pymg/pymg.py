@@ -240,7 +240,27 @@ def analyze(source_file: Path, args: list, modes: list) -> None:
     :return: None
     """
 
-    pass
+    header: list = generate_header(source_file=source_file)
+    footer: list = generate_footer(modes=modes)
+    source: list = read_source(path=source_file)
+
+    create_analysis_file(header=header,
+                         source=source,
+                         footer=footer,
+                         out=Path(Path(__file__).parent, 'out.py'))
+
+    response, message = get_syntax(analysis_file=Path(Path(__file__).parent, 'out.py'))
+
+    if not response:
+        click.echo(message)
+    else:
+        if len(args) == 0:
+            subprocess.run([sys.executable,
+                            Path(Path(__file__).parent, 'out.py').__str__()])
+
+        else:
+            subprocess.run([sys.executable,
+                            Path(Path(__file__).parent, 'out.py').__str__(), *args])
 
 
 @click.command()
