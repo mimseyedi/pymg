@@ -60,7 +60,7 @@ def generate_footer(modes: list[str]) -> list[str]:
     The task of this function is to generate the analysis file footer in different mode.
 
     :param modes: Different modes of making footer:
-    ['standard', 'type', 'message', 'line', 'code', 'file', trace']
+    ['standard', 'type', 'message', 'line', 'code', 'file', trace', 'inner']
 
     :return: list[str]
     """
@@ -74,6 +74,9 @@ def generate_footer(modes: list[str]) -> list[str]:
 
     elif 'trace' in modes:
         footer.extend(all_modes['trace'])
+
+    elif 'inner' in modes:
+        footer.extend(all_modes['inner'])
 
     else:
         if 'type' in modes or 'message' in modes:
@@ -188,7 +191,7 @@ def get_syntax(analysis_file: Path) -> tuple[bool, str]:
         message: list = pymg_msg.split("\n")
 
         line_number: str = str(int(message[0].split()[-1]) - 4)
-        
+
         message[0] = message[0].split()[0].capitalize() + ": " + line_number
         message[1] = "Code: " + message[1].strip()
         message[2] = " " * 2 + "\033[31m" + message[2] + "\033[0m"
@@ -275,6 +278,7 @@ def analyze(source_file: Path, args: list, modes: list) -> None:
 @click.option('-c', '--code', is_flag=True, help='Display the code that caused the error.')
 @click.option('-f', '--file', is_flag=True, help='Display the full path of the file that has an error.')
 @click.option('-T', '--trace', is_flag=True, help='Display all tracked stacks of errors.')
+@click.option('-i', '--inner', is_flag=True, help='Display all tracked inner stacks of errors.')
 def main(**kwargs):
     """
     pymg is a CLI tool that can interpret Python files and display errors in a more optimized and readable way.\n
