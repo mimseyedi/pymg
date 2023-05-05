@@ -32,5 +32,17 @@
                       "        start += 4\n",
                       "        end += 4\n",
                       "        i += 4\n",
-                      "        counter += 1\n"]}
+                      "        counter += 1\n"],
+            "inner": ["    start, end, counter = 0, 4, 1\n",
+                      "    while True:\n",
+                      "        if stack_trace[start].endswith(FILE.split()[-1]):\n",
+                      "            print()\n",
+                      "            print(f'STACK \\033[93m[{counter}]\\033[0m')\n",
+                      "            for j in stack_trace[start:end]:\n",
+                      "                print(j)\n",
+                      "            start += 4\n",
+                      "            end += 4\n",
+                      "            counter += 1\n",
+                      "        else:\n",
+                      "            break\n"]}
 }
