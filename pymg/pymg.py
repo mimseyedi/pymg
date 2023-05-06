@@ -64,7 +64,8 @@ def generate_footer(footer_file: Path, modes: list[str], source_file: Path) -> l
     :param footer_file: The path to the json file that contains the footer information.
 
     :param modes: Different modes of making footer:
-    ['standard', 'type', 'message', 'line', 'code', 'file', trace', 'inner', 'search']
+    ['standard', 'type', 'message', 'line', 'code', 'file',
+    trace', 'inner', 'search', 'LINE', 'CODE', 'FILE']
 
     :param source_file: The path of the file selected by the user for interpretation.
 
@@ -90,7 +91,8 @@ def generate_footer(footer_file: Path, modes: list[str], source_file: Path) -> l
         footer.extend(all_modes['search'])
 
     else:
-        if 'type' in modes or 'message' in modes:
+        if 'type' in modes or 'message' in modes or \
+                'LINE' in modes or 'CODE' in modes or 'FILE':
             for _ in range(2):
                 footer.pop()
 
@@ -109,6 +111,8 @@ def generate_footer(footer_file: Path, modes: list[str], source_file: Path) -> l
             elif 'message' in modes:
                 footer.append(all_modes['message'])
                 modes.remove('message')
+
+        modes: list = list(map(lambda x: x.lower(), modes))
 
         for mode in modes:
             footer.append(all_modes[mode])
