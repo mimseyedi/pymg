@@ -1,5 +1,8 @@
 {
   "static": ["\nexcept BaseException as ex:\n",
+             "    import sys\n",
+             "    import traceback\n",
+             "    #\n",
              "    ex_type, ex_value, ex_traceback = sys.exc_info()\n",
              "    trace_back = traceback.extract_tb(ex_traceback)\n",
              "    stack_trace = list()\n",
@@ -7,7 +10,7 @@
              "    for trace in trace_back:\n",
              "        if trace[0].endswith('out.py'):\n",
              "            stack_trace.append(f'File: {FILE}')\n",
-             "            stack_trace.append(f'Line: {int(trace[1]) - 4}')\n",
+             "            stack_trace.append(f'Line: {int(trace[1]) - 1}')\n",
              "        else:\n",
              "            stack_trace.append(f'File: {trace[0]}')\n",
              "            stack_trace.append(f'Line: {int(trace[1])}')\n",
@@ -17,12 +20,22 @@
              "    print(f'Exception type: {ex_type.__name__}')\n",
              "    print(f'Exception message: {ex_value}')\n"],
 
-  "modes": {"standard": "    print('\\n'.join(stack_trace[1:4]))\n",
+  "modes": {"standard": ["    for i in range(len(stack_trace)):\n",
+                         "        if stack_trace[i].endswith(FILE.split()[-1]):\n",
+                         "            last_err = [stack_trace[i + 1], stack_trace[i + 2], stack_trace[i + 3]]\n",
+                         "    for i in last_err:\n",
+                         "        print(i)\n"],
+
             "type": "    print(f'Exception type: {ex_type.__name__}')\n",
+
             "message": "    print(f'Exception message: {ex_value}')\n",
-            "line": "    print(f'Line: {int(trace_back[0][1]) - 4}')\n",
+
+            "line": "    print(f'Line: {int(trace_back[0][1]) - 1}')\n",
+
             "code": "    print(f'Code: {trace_back[0][3]}')\n",
+
             "file": "    print(f'File: {FILE}')\n",
+
             "trace": ["    start, end, i, counter = 0, 4, 0, 1\n",
                       "    while i < len(stack_trace):\n",
                       "        print()\n",
@@ -33,6 +46,7 @@
                       "        end += 4\n",
                       "        i += 4\n",
                       "        counter += 1\n"],
+
             "inner": ["    start, end, counter = 0, 4, 1\n",
                       "    while True:\n",
                       "        if stack_trace[start].endswith(FILE.split()[-1]):\n",
@@ -45,6 +59,7 @@
                       "            counter += 1\n",
                       "        else:\n",
                       "            break\n"],
+
             "search":["    import requests\n",
                       "    try:\n",
                       "        response = requests.get('https://api.stackexchange.com/' + f'/2.3/search?order=desc&sort=activity&tagged=python&intitle={ex_value}&site=stackoverflow')\n",
