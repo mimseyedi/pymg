@@ -60,7 +60,7 @@ def generate_footer(modes: list[str]) -> list[str]:
     The task of this function is to generate the analysis file footer in different mode.
 
     :param modes: Different modes of making footer:
-    ['standard', 'type', 'message', 'line', 'code', 'file', trace', 'inner']
+    ['standard', 'type', 'message', 'line', 'code', 'file', trace', 'inner', 'search']
 
     :return: list[str]
     """
@@ -77,6 +77,9 @@ def generate_footer(modes: list[str]) -> list[str]:
 
     elif 'inner' in modes:
         footer.extend(all_modes['inner'])
+
+    elif 'search' in modes:
+        footer.extend(all_modes['search'])
 
     else:
         if 'type' in modes or 'message' in modes:
@@ -279,6 +282,7 @@ def analyze(source_file: Path, args: list, modes: list) -> None:
 @click.option('-f', '--file', is_flag=True, help='Display the full path of the file that has an error.')
 @click.option('-T', '--trace', is_flag=True, help='Display all tracked stacks of errors.')
 @click.option('-i', '--inner', is_flag=True, help='Display all tracked inner stacks of errors.')
+@click.option('-s', '--search', is_flag=True, help='Display the links on stackoverflow to find the solution.')
 def main(**kwargs):
     """
     pymg is a CLI tool that can interpret Python files and display errors in a more optimized and readable way.\n
