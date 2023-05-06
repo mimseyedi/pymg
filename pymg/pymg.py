@@ -40,27 +40,26 @@ def read_json(json_path: Path) -> dict:
     return json.loads(json_path.read_text(encoding='utf-8'))
 
 
-def generate_header(source_file: Path) -> list[str]:
+def generate_header() -> list[str]:
     """
     The task of this function is to generate the analysis file header.
 
-    :return: source_file: The path of the file selected by the user for interpretation.
     :return: list[str]
     """
 
     header: list = read_json(Path(Path(__file__).parent, 'template', 'HEADER.json'))["header"]
 
-    header[2] = f"FILE = '{Path(os.getcwd(), source_file).__str__()}'\n"
-
     return header
 
 
-def generate_footer(modes: list[str]) -> list[str]:
+def generate_footer(modes: list[str], source_file: Path) -> list[str]:
     """
     The task of this function is to generate the analysis file footer in different mode.
 
     :param modes: Different modes of making footer:
     ['standard', 'type', 'message', 'line', 'code', 'file', trace', 'inner', 'search']
+
+    :param source_file: The path of the file selected by the user for interpretation.
 
     :return: list[str]
     """
@@ -69,8 +68,10 @@ def generate_footer(modes: list[str]) -> list[str]:
 
     all_modes: dict = read_json(Path(Path(__file__).parent, 'template', 'FOOTER.json'))['modes']
 
+    footer[3] = f"    FILE = '{Path(os.getcwd(), source_file).__str__()}'\n"
+
     if 'standard' in modes:
-        footer.append(all_modes['standard'])
+        footer.extend(all_modes['standard'])
 
     elif 'trace' in modes:
         footer.extend(all_modes['trace'])
@@ -220,8 +221,8 @@ def check_syntax(source_file: Path) -> None:
     :return: None
     """
 
-    header: list = generate_header(source_file=source_file)
-    footer: list = generate_footer(modes=['standard'])
+    header: list = generate_header()
+    footer: list = generate_footer(modes=['standard'], source_file=source_file)
     source: list = read_source(path=source_file)
 
     create_analysis_file(header=header,
@@ -248,8 +249,8 @@ def analyze(source_file: Path, args: list, modes: list) -> None:
     :return: None
     """
 
-    header: list = generate_header(source_file=source_file)
-    footer: list = generate_footer(modes=modes)
+    header: list = generate_header()
+    footer: list = generate_footer(modes=modes, source_file=source_file)
     source: list = read_source(path=source_file)
 
     create_analysis_file(header=header,
