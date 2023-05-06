@@ -69,5 +69,9 @@
                       "    else:\n",
                       "        urls = [i['link'] for i in response.json()['items'] if i['is_answered']]\n",
                       "        print()\n",
-                      "        print('\\n'.join(urls[:10]))\n"]}
+                      "        for link in urls:\n",
+                      "            title = ' '.join(link.split(\"/\")[-1].split('-'))\n",
+                      "            print(f'\\033[1m{title}\\033[0m')\n",
+                      "            print(f'\\033[36;4m{link}\\033[0m')\n",
+                      "            print()\n"]}
 }
