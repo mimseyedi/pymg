@@ -44,5 +44,14 @@
                       "            end += 4\n",
                       "            counter += 1\n",
                       "        else:\n",
-                      "            break\n"]}
+                      "            break\n"],
+            "search":["    import requests\n",
+                      "    try:\n",
+                      "        response = requests.get('https://api.stackexchange.com/' + f'/2.3/search?order=desc&sort=activity&tagged=python&intitle={ex_value}&site=stackoverflow')\n",
+                      "    except requests.RequestException:\n",
+                      "        print('Error: There is no internet connection to search for the error answer.')\n",
+                      "    else:\n",
+                      "        urls = [i['link'] for i in response.json()['items'] if i['is_answered']]\n",
+                      "        print()\n",
+                      "        print('\\n'.join(urls[:10]))\n"]}
 }
