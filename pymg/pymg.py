@@ -26,6 +26,9 @@ from pathlib import Path
 
 
 VERSION: str = '1.0.0'
+HEADER_FILE: Path = Path(Path(__file__).parent, 'template', 'HEADER.json')
+FOOTER_FILE: Path = Path(Path(__file__).parent, 'template', 'FOOTER.json')
+ANALYSIS_FILE: Path = Path(Path(__file__).parent, 'out.py')
 
 
 def read_json(json_path: Path) -> dict:
@@ -40,21 +43,24 @@ def read_json(json_path: Path) -> dict:
     return json.loads(json_path.read_text(encoding='utf-8'))
 
 
-def generate_header() -> list[str]:
+def generate_header(header_file: Path) -> list[str]:
     """
     The task of this function is to generate the analysis file header.
 
+    :param header_file: The path to the json file that contains the header information.
     :return: list[str]
     """
 
-    header: list = read_json(Path(Path(__file__).parent, 'template', 'HEADER.json'))["header"]
+    header: list = read_json(json_path=header_file)["header"]
 
     return header
 
 
-def generate_footer(modes: list[str], source_file: Path) -> list[str]:
+def generate_footer(footer_file: Path, modes: list[str], source_file: Path) -> list[str]:
     """
     The task of this function is to generate the analysis file footer in different mode.
+
+    :param footer_file: The path to the json file that contains the footer information.
 
     :param modes: Different modes of making footer:
     ['standard', 'type', 'message', 'line', 'code', 'file', trace', 'inner', 'search']
@@ -64,9 +70,9 @@ def generate_footer(modes: list[str], source_file: Path) -> list[str]:
     :return: list[str]
     """
 
-    footer: list = read_json(Path(Path(__file__).parent, 'template', 'FOOTER.json'))['static']
+    footer_info: dict = read_json(json_path=footer_file)
 
-    all_modes: dict = read_json(Path(Path(__file__).parent, 'template', 'FOOTER.json'))['modes']
+    footer, all_modes = footer_info['static'], footer_info['modes']
 
     footer[3] = f"    FILE = '{Path(os.getcwd(), source_file).__str__()}'\n"
 
@@ -221,8 +227,9 @@ def check_syntax(source_file: Path) -> None:
     :return: None
     """
 
-    header: list = generate_header()
-    footer: list = generate_footer(modes=['standard'], source_file=source_file)
+    header: list = generate_header(header_file=HEADER_FILE)
+    footer: list = generate_footer(footer_file=FOOTER_FILE,
+                                   modes=['standard'], source_file=source_file)
     source: list = read_source(path=source_file)
 
     create_analysis_file(header=header,
@@ -249,8 +256,9 @@ def analyze(source_file: Path, args: list, modes: list) -> None:
     :return: None
     """
 
-    header: list = generate_header()
-    footer: list = generate_footer(modes=modes, source_file=source_file)
+    header: list = generate_header(header_file=HEADER_FILE)
+    footer: list = generate_footer(footer_file=FOOTER_FILE,
+                                   modes=modes, source_file=source_file)
     source: list = read_source(path=source_file)
 
     create_analysis_file(header=header,
