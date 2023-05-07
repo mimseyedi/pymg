@@ -12,7 +12,7 @@ setup (
  name = 'pymg',
  description = 'pymg is a CLI tool that can interpret Python files and display errors in a more optimized and more readable way.',
  version = '1.0.0',
- packages = find_packages(),
+ packages = find_packages(exclude='template'),
  install_requires = install_requires,
  python_requires='>=3.11',
  entry_points='''
