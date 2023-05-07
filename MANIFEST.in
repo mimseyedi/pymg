@@ -1,0 +1,2 @@
+include pymg/template/HEADER.json
+include pymg/template/FOOTER.json
