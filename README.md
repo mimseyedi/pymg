@@ -1,3 +1,4 @@
+[![pypi](https://img.shields.io/pypi/v/redh.svg)](https://pypi.org/project/redh/) [![license](https://img.shields.io/github/license/mimseyedi/pymg.svg)](https://github.com/mimseyedi/pymg/blob/master/LICENSE)
 ![img1](https://raw.githubusercontent.com/mimseyedi/pymg/master/docs/pymg-poster.png)
 
 ## Table of Contents: <a class="anchor" id="contents"></a>
