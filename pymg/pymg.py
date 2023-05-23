@@ -22,6 +22,7 @@ import click
 import pickle
 import subprocess
 from pathlib import Path
+from typing import Callable
 from types import TracebackType
 from rich.panel import Panel
 from rich.syntax import Syntax
@@ -43,13 +44,16 @@ def mk_mirror_file(mirror_file: Path, source: list[str], header: list[str]) -> N
         mirror_file_.write(''.join(mirror_text))
 
 
-def write_recipe(recipe_file: Path, recipe_data: dict) -> None:
+def write_recipe(recipe_file: Path, recipe_data: list[Callable]) -> None:
     with open(file=recipe_file, mode='wb') as recipe_file_:
         pickle.dump(recipe_data, recipe_file_)
 
 
-def read_recipe(recipe_file: Path) -> dict:
-    pass
+def read_recipe(recipe_file: Path) -> list[Callable]:
+    with open(file=recipe_file, mode='rb') as recipe_file_:
+        recipe: list = pickle.load(recipe_file_)
+
+    return recipe
 
 
 def check_syntax(source_file: Path) -> tuple[bool, str]:
