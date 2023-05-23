@@ -25,8 +25,9 @@ from pathlib import Path
 from typing import Callable
 from types import TracebackType
 from rich.panel import Panel
+from rich.console import Group
 from rich.syntax import Syntax
-from rich.console import Console, Group
+from rich import print as cprint
 
 
 def read_source(source_file: Path) -> list[str]:
@@ -66,7 +67,21 @@ def check_syntax(source_file: Path, python_interpreter: str) -> tuple[bool, str]
 
 
 def display_syntax_error(syntax_err: str) -> None:
-    pass
+    splitted_message: list = syntax_err[syntax_err.index(',') + 2:].split('\n')
+
+    lineno: int = int(splitted_message[0].split()[-1])
+
+    main_group = Group(
+        Syntax(splitted_message[1].strip(), lexer='python', line_numbers=True,
+               start_line=lineno, highlight_lines={lineno},
+               indent_guides=True, background_color='default', theme='gruvbox-dark'),
+
+        splitted_message[2] if len(str(lineno)) < 2 else " " * (len(str(lineno)) - 1) + splitted_message[2],
+
+        '\n' + f'Message: [default]{splitted_message[3][13:].capitalize()}[/]'
+    )
+
+    cprint(Panel(main_group, title='SyntaxError', style='red', padding=(1, 1, 1, 1), highlight=False))
 
 
 def gen_type(**exc_info) -> list:
