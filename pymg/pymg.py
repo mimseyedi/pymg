@@ -36,7 +36,7 @@ def read_source(source_file: Path) -> list[str]:
 
 
 def mk_mirror_file(mirror_file: Path, source: list[str], header: list[str]) -> None:
-    
+
     mirror_text: list = [*header, *source]
 
     with open(file=mirror_file, mode='w+') as mirror_file_:
@@ -113,6 +113,16 @@ def display_error_message(exc_type: type, exc_message: Exception, traceback_: Tr
 
 def prioritizing_options(options: dict) -> list[str]:
     pass
+
+
+def gen_mirror_header() -> list[str]:
+    header: list = [
+        'from sys import excepthook\n',
+        'from pymg import display_error_message\n',
+        'excepthook = display_error_message\n'
+    ]
+
+    return header
 
 
 def get_version() -> str:
