@@ -44,7 +44,8 @@ def mk_mirror_file(mirror_file: Path, source: list[str], header: list[str]) -> N
 
 
 def write_recipe(recipe_file: Path, recipe_data: dict) -> None:
-    pass
+    with open(file=recipe_file, mode='wb') as recipe_file_:
+        pickle.dump(recipe_data, recipe_file_)
 
 
 def read_recipe(recipe_file: Path) -> dict:
