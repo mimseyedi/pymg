@@ -29,7 +29,10 @@ from rich.console import Console, Group
 
 
 def read_source(source_file: Path) -> list[str]:
-    pass
+    with open(file=source_file, mode='r') as source_file_:
+        source: list = source_file_.readlines()
+
+    return source
 
 
 def rm_mirror_file(mirror_file: Path) -> None:
