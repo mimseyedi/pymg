@@ -35,12 +35,12 @@ def read_source(source_file: Path) -> list[str]:
     return source
 
 
-def rm_mirror_file(mirror_file: Path) -> None:
-    pass
+def mk_mirror_file(mirror_file: Path, source: list[str], header: list[str]) -> None:
+    
+    mirror_text: list = [*header, *source]
 
-
-def mk_mirror_file(mirror_file: Path, header: list[str]) -> None:
-    pass
+    with open(file=mirror_file, mode='w+') as mirror_file_:
+        mirror_file_.write(''.join(mirror_text))
 
 
 def write_recipe(recipe_file: Path, recipe_data: dict) -> None:
