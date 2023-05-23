@@ -91,7 +91,9 @@ def gen_type(**exc_info) -> list:
 
 
 def gen_message(**exc_info) -> list:
-    pass
+    return [
+        f"[yellow]Exception Message ❱[/] [bold default]{exc_info['exc_message'].__str__()}[/]"
+    ]
 
 
 def gen_file(**exc_info) -> list:
