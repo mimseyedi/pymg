@@ -153,6 +153,7 @@ def get_version() -> str:
 @click.option('-L', '--locals', is_flag=True, help="")
 @click.option('-S', '--search', is_flag=True, help="According to the exception that occurred and the generated message, with the help of stackoverflow's free api, the search to find a solution will be started. and finally the result will be displayed in the form of links that refer to stackoverflow and users solutions.")
 @click.option('-o', '--output', is_flag=True, help="")
+@click.option('-r', '--recent', is_flag=True, help="")
 @click.option('-v', '--version', is_flag=True, help='pymg version will be displayed. For more information and access to the latest changes, visit the pymg GitHub repository at https://github.com/mimseyedi/pymg.')
 def main(**kwargs):
     """
