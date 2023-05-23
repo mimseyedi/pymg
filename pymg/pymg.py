@@ -128,6 +128,7 @@ def gen_scope(**exc_info) -> list:
     for index in range(len(extracted_tb) - 1, -1, -1):
         if extracted_tb[index].filename == MIRROR_FILE.__str__():
             scope: str = extracted_tb[index].name
+            break
 
     return [
         f"[yellow]File ❱[/] [bold default]{scope}[/]"
@@ -140,6 +141,7 @@ def gen_line(**exc_info) -> list:
     for index in range(len(extracted_tb) - 1, -1, -1):
         if extracted_tb[index].filename == MIRROR_FILE.__str__():
             lineno: str = str(extracted_tb[index].lineno - 3)
+            break
 
     return [
         f"[yellow]Line ❱[/] [bold default]{lineno}[/]"
@@ -147,7 +149,18 @@ def gen_line(**exc_info) -> list:
 
 
 def gen_code(**exc_info) -> list:
-    pass
+    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+
+    for index in range(len(extracted_tb) - 1, -1, -1):
+        if extracted_tb[index].filename == MIRROR_FILE.__str__():
+            code: str = extracted_tb[index].line
+            break
+
+    return [
+        Syntax(
+            code=code, lexer='python', background_color='default', theme='gruvbox-dark'
+        )
+    ]
 
 
 def gen_trace(**exc_info) -> list:
