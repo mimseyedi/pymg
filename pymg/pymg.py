@@ -85,7 +85,9 @@ def display_syntax_error(syntax_err: str) -> None:
 
 
 def gen_type(**exc_info) -> list:
-    pass
+    return [
+        f"[yellow]Exception Type ❱[/] [bold default]{exc_info['exc_type'].__name__}[/]"
+    ]
 
 
 def gen_message(**exc_info) -> list:
