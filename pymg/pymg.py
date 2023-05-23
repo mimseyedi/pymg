@@ -135,7 +135,15 @@ def gen_scope(**exc_info) -> list:
 
 
 def gen_line(**exc_info) -> list:
-    pass
+    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+
+    for index in range(len(extracted_tb) - 1, -1, -1):
+        if extracted_tb[index].filename == MIRROR_FILE.__str__():
+            lineno: str = str(extracted_tb[index].lineno - 3)
+
+    return [
+        f"[yellow]Line ❱[/] [bold default]{lineno}[/]"
+    ]
 
 
 def gen_code(**exc_info) -> list:
