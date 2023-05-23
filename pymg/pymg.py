@@ -56,8 +56,13 @@ def read_recipe(recipe_file: Path) -> list[Callable]:
     return recipe
 
 
-def check_syntax(source_file: Path) -> tuple[bool, str]:
-    pass
+def check_syntax(source_file: Path, python_interpreter: str) -> tuple[bool, str]:
+    syntax_err: str = subprocess.run(
+        [python_interpreter, '-m', 'py_compile', source_file.__str__()],
+        capture_output=True
+    ).stderr.decode()
+
+    return (True, 'INTACT') if not syntax_err else (False, syntax_err)
 
 
 def display_syntax_error(syntax_err: str) -> None:
