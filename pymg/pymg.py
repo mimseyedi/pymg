@@ -20,6 +20,7 @@ pymg Github repository: https://github.com/mimseyedi/pymg
 import sys
 import click
 import pickle
+import traceback
 import subprocess
 from pathlib import Path
 from typing import Callable
@@ -28,6 +29,11 @@ from rich.panel import Panel
 from rich.console import Group
 from rich.syntax import Syntax
 from rich import print as cprint
+
+
+MIRROR_FILE: Path = Path(Path(__file__).parent, 'mirror.py')
+RECIPE_FILE: Path = Path(Path(__file__).parent, 'recipe.pymgrcp')
+PYFILE_INFO: Path = Path(Path(__file__).parent, 'pyfileinfo.pymginfo')
 
 
 def read_source(source_file: Path) -> list[str]:
@@ -55,6 +61,18 @@ def read_recipe(recipe_file: Path) -> list[Callable]:
         recipe: list = pickle.load(recipe_file_)
 
     return recipe
+
+
+def get_file_path(py_file_info: Path) -> str:
+    with open(file=py_file_info, mode='rb') as py_file_info_:
+        py_file_information: list = pickle.load(py_file_info_)
+
+    return py_file_information[0]
+
+
+def write_file_info(py_file_info: Path, file_path: str) -> None:
+    with open(file=py_file_info, mode='wb') as py_file_info_:
+        pickle.dump(file_path, py_file_info_)
 
 
 def check_syntax(source_file: Path, python_interpreter: str) -> tuple[bool, str]:
@@ -97,13 +115,23 @@ def gen_message(**exc_info) -> list:
 
 
 def gen_file(**exc_info) -> list:
+    py_file_path: str = get_file_path(py_file_info=PYFILE_INFO)
+
     return [
-        f"[yellow]File ❱[/] [bold default]{exc_info['traceback_'].tb_frame.f_code.co_filename}[/]"
+        f"[yellow]File ❱[/] [bold default]{py_file_path}[/]"
     ]
 
 
 def gen_scope(**exc_info) -> list:
-    pass
+    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+
+    for index in range(len(extracted_tb) - 1, -1, -1):
+        if extracted_tb[index].filename == MIRROR_FILE.__str__():
+            scope: str = extracted_tb[index].name
+
+    return [
+        f"[yellow]File ❱[/] [bold default]{scope}[/]"
+    ]
 
 
 def gen_line(**exc_info) -> list:
