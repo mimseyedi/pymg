@@ -97,7 +97,9 @@ def gen_message(**exc_info) -> list:
 
 
 def gen_file(**exc_info) -> list:
-    pass
+    return [
+        f"[yellow]File ❱[/] [bold default]{exc_info['traceback_'].tb_frame.f_code.co_filename}[/]"
+    ]
 
 
 def gen_scope(**exc_info) -> list:
