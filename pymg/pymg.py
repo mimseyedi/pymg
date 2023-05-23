@@ -133,7 +133,18 @@ def interpret(python_interpreter: str, mirror_file: Path, args: list):
 
 
 def display_error_message(exc_type: type, exc_message: Exception, traceback_: TracebackType) -> None:
-    pass
+    recipe: list = read_recipe(recipe_file=Path('recipe.pymgrcp'))
+
+    template: list = [
+        list_() for func in recipe
+        for list_ in func(
+            exc_type=exc_type,
+            exc_message=exc_message,
+            traceback_=traceback_
+        )
+    ]
+
+    cprint(Panel(Group(*template), title='Exception', style='red', padding=(0, 1, 0, 1), highlight=False))
 
 
 def prioritizing_options(options: dict) -> list[str]:
