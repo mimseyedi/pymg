@@ -348,7 +348,7 @@ def gen_inner_with_locals(**exc_info) -> list:
 
                         Panel(
                             '\n'.join([f"[bold color(125)]{var}[/] = [italic default]{value}[/]"
-                                       for var, value in locals_[extracted_tb[counter].name].items()]),
+                            for var, value in locals_[extracted_tb[counter].name].items()]),
                             expand=False, title='locals', style='yellow'
                         )
                     )
@@ -367,7 +367,36 @@ def gen_inner_with_locals(**exc_info) -> list:
 
 
 def gen_locals(**exc_info) -> list:
-    pass
+    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+
+    template, locals_, counter = [], {}, 0
+
+    while exc_info['traceback_']:
+        locals_[exc_info['traceback_'].tb_frame.f_code.co_name] = {
+            var: value for var, value in exc_info['traceback_'].tb_frame.f_locals.items()
+            if not var.startswith('__') and not var.endswith('__') and \
+               var not in ['display_error_message'] and not isinstance(value, ModuleType)
+        }
+
+        if extracted_tb[counter].filename == get_file_path(PYFILE_INFO):
+            local = Group(
+                Panel(
+                    Group(
+                        '\n'.join([f"[bold color(125)]{var}[/] = [italic default]{value}[/]"
+                        for var, value in locals_[extracted_tb[counter].name].items()]),
+                    )
+
+                , title=f'[bold]{extracted_tb[counter].name} locals[/]', title_align='left',
+                padding=(1, 1, 0, 1), style='color(172)')
+            )
+
+            template.extend(['', local])
+
+        counter += 1
+
+        exc_info['traceback_'] = exc_info['traceback_'].tb_next
+
+    return template
 
 
 def gen_search(**exc_info) -> list:
