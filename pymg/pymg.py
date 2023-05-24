@@ -456,9 +456,9 @@ def prioritizing_options(options: dict) -> list[str]:
 
 def gen_mirror_header() -> list[str]:
     header: list = [
-        'from sys import excepthook\n',
+        'import sys\n',
         'from pymg import display_error_message\n',
-        'excepthook = display_error_message\n'
+        'sys.excepthook = display_error_message\n'
     ]
 
     return header
