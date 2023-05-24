@@ -427,8 +427,9 @@ def gen_search(**exc_info) -> None:
         cprint(search_box)
 
 
-def get_output(output_file: Path, stdout: str) -> None:
-    pass
+def get_output(python_interpreter: str, output_file: Path) -> None:
+    with open(output_file, "w+") as output_file_:
+        subprocess.call([python_interpreter, output_file.__str__()], stdout=output_file_)
 
 
 def interpret(python_interpreter: str, mirror_file: Path, args: list) -> None:
