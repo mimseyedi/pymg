@@ -20,6 +20,7 @@ pymg Github repository: https://github.com/mimseyedi/pymg
 import sys
 import click
 import pickle
+import requests
 import traceback
 import subprocess
 from pathlib import Path
@@ -399,8 +400,31 @@ def gen_locals(**exc_info) -> list:
     return template
 
 
-def gen_search(**exc_info) -> list:
-    pass
+def gen_search(**exc_info) -> None:
+    try:
+        response = requests.get(
+            'https://api.stackexchange.com/' +
+            f'/2.3/search?order=desc&sort=activity&tagged=python&intitle={exc_info["exc_message"]}&site=stackoverflow')
+
+    except requests.RequestException:
+        cprint("[bold red]Error:[/] [default]No internet connection![/]")
+
+    else:
+        posts: dict = {
+            item.get('title'): item.get('link')
+            for item in response.json().get(['items'])
+            if item.get('is_answered')
+        }
+
+        search_box = Panel(
+            Group(
+                '\n'.join([f'[bold]{title}[/]\n[underline color(33)]{link}[/]\n'
+                for title, link in posts.items()])
+            )
+        , title=f'[bold]Search Result[/]', title_align='center',
+        padding=(1, 1, 0, 1), style='color(29)')
+
+        cprint(search_box)
 
 
 def get_output(output_file: Path, stdout: str) -> None:
