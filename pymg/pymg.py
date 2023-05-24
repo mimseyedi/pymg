@@ -182,6 +182,7 @@ def gen_trace(**exc_info) -> list:
                     f"File: [bold default]{get_file_path(py_file_info=PYFILE_INFO)}[/]"
                     if exc_info['traceback_'].tb_frame.f_code.co_filename == MIRROR_FILE
                     else f"File: [bold default]{exc_info['traceback_'].tb_frame.f_code.co_filename}[/]",
+                    '',
 
                     Syntax(
                         code=extracted_tb[counter].line, lexer='python',
@@ -191,18 +192,20 @@ def gen_trace(**exc_info) -> list:
 
                         highlight_lines={extracted_tb[counter].lineno - 3}
                         if extracted_tb[counter].filename == get_file_path(PYFILE_INFO)
-                        else extracted_tb[counter].lineno,
+                        else {extracted_tb[counter].lineno},
 
                         background_color='default', theme='gruvbox-dark'
                     )
                 )
-            , title=f'[bold]Trace[{counter}][/]', title_align='left',
+            , title=f'[bold]Trace[{counter + 1}] - {extracted_tb[counter].name}[/]', title_align='left',
             padding=(1, 1, 0, 1), style='color(172)')
         )
 
-        traces.extend(['', trace])
-
         counter += 1
+
+        exc_info['traceback_'] = exc_info['traceback_'].tb_next
+
+        traces.extend(['', trace])
 
     return traces
 
@@ -222,7 +225,8 @@ def gen_trace_with_locals(**exc_info) -> list:
     while exc_info['traceback_']:
         locals_[exc_info['traceback_'].tb_frame.f_code.co_name] = {
             var: value for var, value in exc_info['traceback_'].tb_frame.f_locals.items()
-            if var not in ['display_error_message'] and not isinstance(value, ModuleType)
+            if not var.startswith('__') and not var.endswith('__') and \
+               var not in ['display_error_message'] and not isinstance(value, ModuleType)
         }
 
         trace = Group(
@@ -231,6 +235,7 @@ def gen_trace_with_locals(**exc_info) -> list:
                     f"File: [bold default]{get_file_path(py_file_info=PYFILE_INFO)}[/]"
                     if exc_info['traceback_'].tb_frame.f_code.co_filename == MIRROR_FILE
                     else f"File: [bold default]{exc_info['traceback_'].tb_frame.f_code.co_filename}[/]",
+                    '',
 
                     Syntax(
                         code=extracted_tb[counter].line, lexer='python',
@@ -240,7 +245,7 @@ def gen_trace_with_locals(**exc_info) -> list:
 
                         highlight_lines={extracted_tb[counter].lineno - 3}
                         if extracted_tb[counter].filename == get_file_path(PYFILE_INFO)
-                        else extracted_tb[counter].lineno,
+                        else {extracted_tb[counter].lineno},
 
                         background_color='default', theme='gruvbox-dark'
                     ),
@@ -248,14 +253,14 @@ def gen_trace_with_locals(**exc_info) -> list:
 
                     Panel(
                         '\n'.join([f"[bold color(125)]{var}[/] = [italic default]{value}[/]"
-                        for var, value in locals_[extracted_tb[counter].name]]),
+                        for var, value in locals_[extracted_tb[counter].name].items()]),
                         expand=False, title='locals', style='yellow'
                     )
                     if extracted_tb[counter].filename == get_file_path(PYFILE_INFO)
                     else '[bold underline yellow]NO LOCALS WERE FOUND IN THIS TRACE[/]'
                 )
 
-            , title=f'[bold]Trace[{counter}][/]', title_align='left',
+            , title=f'[bold]Trace[{counter + 1}] - {extracted_tb[counter].name}[/]', title_align='left',
             padding=(1,1,0,1), style='color(172)')
         )
 
@@ -269,7 +274,96 @@ def gen_trace_with_locals(**exc_info) -> list:
 
 
 def gen_inner(**exc_info) -> list:
-    pass
+    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+
+    traces, counter = [], 0
+
+    traces.extend(
+        [
+            f"[bold yellow]Exception Type ❱[/] [bold default]{exc_info['exc_type'].__name__}[/]",
+            f"[bold yellow]Exception Message ❱[/] [bold default]{exc_info['exc_message'].__str__()}[/]"
+        ]
+    )
+
+    while exc_info['traceback_']:
+        if extracted_tb[counter].filename == get_file_path(PYFILE_INFO):
+            trace = Group(
+                Panel(
+                    Group(
+                        f"File: [bold default]{get_file_path(PYFILE_INFO)}[/]\n",
+
+                        Syntax(
+                            code=extracted_tb[counter].line, lexer='python',
+                            line_numbers=True, start_line=extracted_tb[counter].lineno - 3,
+                            highlight_lines={extracted_tb[counter].lineno - 3},
+                            background_color='default', theme='gruvbox-dark'
+                        )
+                    )
+
+                , title=f'[bold]Trace[{counter + 1}] - {extracted_tb[counter].name}[/]', title_align='left',
+                padding=(1, 1, 0, 1), style='color(172)')
+            )
+
+            traces.extend(['', trace])
+
+        counter += 1
+
+        exc_info['traceback_'] = exc_info['traceback_'].tb_next
+
+    return traces
+
+
+def gen_inner_with_locals(**exc_info) -> list:
+    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+
+    traces, locals_, counter = [], {}, 0
+
+    traces.extend(
+        [
+            f"[bold yellow]Exception Type ❱[/] [bold default]{exc_info['exc_type'].__name__}[/]",
+            f"[bold yellow]Exception Message ❱[/] [bold default]{exc_info['exc_message'].__str__()}[/]"
+        ]
+    )
+
+    while exc_info['traceback_']:
+        locals_[exc_info['traceback_'].tb_frame.f_code.co_name] = {
+            var: value for var, value in exc_info['traceback_'].tb_frame.f_locals.items()
+            if not var.startswith('__') and not var.endswith('__') and \
+                var not in ['display_error_message'] and not isinstance(value, ModuleType)
+        }
+
+        if extracted_tb[counter].filename == get_file_path(PYFILE_INFO):
+            trace = Group(
+                Panel(
+                    Group(
+                        f"File: [bold default]{get_file_path(PYFILE_INFO)}[/]\n",
+
+                        Syntax(
+                            code=extracted_tb[counter].line, lexer='python',
+                            line_numbers=True, start_line=extracted_tb[counter].lineno - 3,
+                            highlight_lines={extracted_tb[counter].lineno - 3},
+                            background_color='default', theme='gruvbox-dark'
+                        ),
+                        '',
+
+                        Panel(
+                            '\n'.join([f"[bold color(125)]{var}[/] = [italic default]{value}[/]"
+                                       for var, value in locals_[extracted_tb[counter].name].items()]),
+                            expand=False, title='locals', style='yellow'
+                        )
+                    )
+
+                , title=f'[bold]Trace[{counter + 1}] - {extracted_tb[counter].name}[/]', title_align='left',
+                padding=(1, 1, 0, 1), style='color(172)')
+            )
+
+            traces.extend(['', trace])
+
+        counter += 1
+
+        exc_info['traceback_'] = exc_info['traceback_'].tb_next
+
+    return traces
 
 
 def gen_locals(**exc_info) -> list:
