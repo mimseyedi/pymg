@@ -431,8 +431,8 @@ def get_output(output_file: Path, stdout: str) -> None:
     pass
 
 
-def interpret(python_interpreter: str, mirror_file: Path, args: list):
-    pass
+def interpret(python_interpreter: str, mirror_file: Path, args: list) -> None:
+    subprocess.run([python_interpreter, mirror_file.__str__(), *args])
 
 
 def display_error_message(exc_type: type, exc_message: Exception, traceback_: TracebackType) -> None:
