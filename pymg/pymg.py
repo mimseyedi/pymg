@@ -466,7 +466,7 @@ def gen_mirror_header() -> list[str]:
 
 
 def get_version() -> str:
-    pass
+    return '2.0.0'
 
 
 @click.command(context_settings={'help_option_names': ['-h', '--help']})
