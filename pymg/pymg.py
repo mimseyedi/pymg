@@ -166,9 +166,9 @@ def gen_code(**exc_info) -> list:
 def gen_trace(**exc_info) -> list:
     extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
 
-    traces, counter = [], 0
+    template, counter = [], 0
 
-    traces.extend(
+    template.extend(
         [
             f"[bold yellow]Exception Type ❱[/] [bold default]{exc_info['exc_type'].__name__}[/]",
             f"[bold yellow]Exception Message ❱[/] [bold default]{exc_info['exc_message'].__str__()}[/]"
@@ -205,17 +205,17 @@ def gen_trace(**exc_info) -> list:
 
         exc_info['traceback_'] = exc_info['traceback_'].tb_next
 
-        traces.extend(['', trace])
+        template.extend(['', trace])
 
-    return traces
+    return template
 
 
 def gen_trace_with_locals(**exc_info) -> list:
     extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
 
-    traces, locals_, counter = [], {}, 0
+    template, locals_, counter = [], {}, 0
 
-    traces.extend(
+    template.extend(
         [
             f"[bold yellow]Exception Type ❱[/] [bold default]{exc_info['exc_type'].__name__}[/]",
             f"[bold yellow]Exception Message ❱[/] [bold default]{exc_info['exc_message'].__str__()}[/]"
@@ -268,17 +268,17 @@ def gen_trace_with_locals(**exc_info) -> list:
 
         exc_info['traceback_'] = exc_info['traceback_'].tb_next
 
-        traces.extend(['', trace])
+        template.extend(['', trace])
 
-    return traces
+    return template
 
 
 def gen_inner(**exc_info) -> list:
     extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
 
-    traces, counter = [], 0
+    template, counter = [], 0
 
-    traces.extend(
+    template.extend(
         [
             f"[bold yellow]Exception Type ❱[/] [bold default]{exc_info['exc_type'].__name__}[/]",
             f"[bold yellow]Exception Message ❱[/] [bold default]{exc_info['exc_message'].__str__()}[/]"
@@ -304,21 +304,21 @@ def gen_inner(**exc_info) -> list:
                 padding=(1, 1, 0, 1), style='color(172)')
             )
 
-            traces.extend(['', trace])
+            template.extend(['', trace])
 
         counter += 1
 
         exc_info['traceback_'] = exc_info['traceback_'].tb_next
 
-    return traces
+    return template
 
 
 def gen_inner_with_locals(**exc_info) -> list:
     extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
 
-    traces, locals_, counter = [], {}, 0
+    template, locals_, counter = [], {}, 0
 
-    traces.extend(
+    template.extend(
         [
             f"[bold yellow]Exception Type ❱[/] [bold default]{exc_info['exc_type'].__name__}[/]",
             f"[bold yellow]Exception Message ❱[/] [bold default]{exc_info['exc_message'].__str__()}[/]"
@@ -357,13 +357,13 @@ def gen_inner_with_locals(**exc_info) -> list:
                 padding=(1, 1, 0, 1), style='color(172)')
             )
 
-            traces.extend(['', trace])
+            template.extend(['', trace])
 
         counter += 1
 
         exc_info['traceback_'] = exc_info['traceback_'].tb_next
 
-    return traces
+    return template
 
 
 def gen_locals(**exc_info) -> list:
