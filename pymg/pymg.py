@@ -64,11 +64,11 @@ def read_recipe(recipe_file: Path) -> list[Callable]:
     return recipe
 
 
-def get_file_path(py_file_info: Path) -> str:
+def get_file_path(py_file_info: Path) -> list:
     with open(file=py_file_info, mode='rb') as py_file_info_:
         py_file_information: list = pickle.load(py_file_info_)
 
-    return py_file_information[0]
+    return py_file_information
 
 
 def write_file_info(py_file_info: Path, file_path: str) -> None:
