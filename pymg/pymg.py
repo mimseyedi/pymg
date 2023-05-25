@@ -76,6 +76,16 @@ def write_file_info(py_file_info: Path, file_path: str) -> None:
         pickle.dump(file_path, py_file_info_)
 
 
+def pyfile_path_validator(py_file: Path) -> tuple[bool, str]:
+    if py_file.exists():
+        if py_file.is_file() and py_file.__str__().endswith('.py'):
+            return True, 'VALID'
+
+        return False, f'[bold red]Error:[/] The selected path must be the path of a Python file -> [yellow]{py_file.__str__()}[/]'
+
+    return False, f'[bold red]Error:[/] This file does not exist -> [yellow]{py_file.__str__()}[/]'
+
+
 def check_syntax(source_file: Path, python_interpreter: str) -> tuple[bool, str]:
     syntax_err: str = subprocess.run(
         [python_interpreter, '-m', 'py_compile', source_file.__str__()],
