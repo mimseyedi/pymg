@@ -451,8 +451,50 @@ def display_error_message(exc_type: type, exc_message: Exception, traceback_: Tr
     cprint(Panel(Group(*template), title='Exception', style='red', padding=(0, 1, 0, 1), highlight=False))
 
 
-def prioritizing_options(options: dict) -> list[str]:
-    pass
+def prioritizing_options(options: dict) -> list[Callable]:
+
+    prioritized_options, draft_options, available_options, second_level_options = [], [], [
+        option for option, value in options.items() if value
+    ], {
+        'type': gen_type,
+        'message': gen_message,
+        'file': gen_file,
+        'scope': gen_scope,
+        'line': gen_line,
+        'code': gen_code,
+        'locals': gen_locals,
+        'search': gen_search
+    }
+
+    for option in available_options:
+        if option == 'trace' and 'locals' in available_options:
+            if gen_trace in prioritized_options:
+                prioritized_options.remove(gen_trace)
+
+            prioritized_options.append(gen_trace_with_locals)
+
+        elif option == 'inner' and 'locals' in available_options:
+            if gen_inner in prioritized_options:
+                prioritized_options.remove(gen_inner)
+
+            prioritized_options.append(gen_inner_with_locals)
+
+        elif option == 'trace':
+            if gen_trace_with_locals not in prioritized_options:
+                prioritized_options.append(gen_trace)
+
+        elif option == 'inner':
+            if gen_inner_with_locals not in prioritized_options:
+                prioritized_options.append(gen_inner)
+
+        else:
+            draft_options.append(second_level_options.get(option))
+
+    if not prioritized_options:
+        prioritized_options.extend(draft_options)
+
+
+    return prioritized_options
 
 
 def gen_mirror_header() -> list[str]:
