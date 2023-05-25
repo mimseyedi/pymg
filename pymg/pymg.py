@@ -24,7 +24,6 @@ import requests
 import traceback
 import subprocess
 from pathlib import Path
-from typing import Callable
 from types import TracebackType, ModuleType
 from rich.panel import Panel
 from rich.console import Group
@@ -52,12 +51,12 @@ def mk_mirror_file(mirror_file: Path, source: list[str], header: list[str]) -> N
         mirror_file_.write(''.join(mirror_text))
 
 
-def write_recipe(recipe_file: Path, recipe_data: list[Callable]) -> None:
+def write_recipe(recipe_file: Path, recipe_data: list[str]) -> None:
     with open(file=recipe_file, mode='wb') as recipe_file_:
         pickle.dump(recipe_data, recipe_file_)
 
 
-def read_recipe(recipe_file: Path) -> list[Callable]:
+def read_recipe(recipe_file: Path) -> list[str]:
     with open(file=recipe_file, mode='rb') as recipe_file_:
         recipe: list = pickle.load(recipe_file_)
 
@@ -126,7 +125,7 @@ def gen_message(**exc_info) -> list:
 
 
 def gen_file(**exc_info) -> list:
-    py_file_path: str = get_file_path(py_file_info=PYFILE_INFO)
+    py_file_path: str = get_file_path(py_file_info=PYFILE_INFO)[0]
 
     return [
         f"[yellow]File ❱[/] [bold default]{py_file_path}[/]"
@@ -142,7 +141,7 @@ def gen_scope(**exc_info) -> list:
             break
 
     return [
-        f"[yellow]File ❱[/] [bold default]{scope}[/]"
+        f"[yellow]Scope ❱[/] [bold default]{scope}[/]"
     ]
 
 
@@ -190,19 +189,19 @@ def gen_trace(**exc_info) -> list:
         trace = Group(
             Panel(
                 Group(
-                    f"File: [bold default]{get_file_path(py_file_info=PYFILE_INFO)}[/]"
-                    if exc_info['traceback_'].tb_frame.f_code.co_filename == MIRROR_FILE
+                    f"File: [bold default]{get_file_path(py_file_info=PYFILE_INFO)[0]}[/]"
+                    if exc_info['traceback_'].tb_frame.f_code.co_filename == MIRROR_FILE.__str__()
                     else f"File: [bold default]{exc_info['traceback_'].tb_frame.f_code.co_filename}[/]",
                     '',
 
                     Syntax(
                         code=extracted_tb[counter].line, lexer='python',
                         line_numbers=True, start_line=extracted_tb[counter].lineno - 3
-                        if extracted_tb[counter].filename == get_file_path(PYFILE_INFO)
+                        if extracted_tb[counter].filename == MIRROR_FILE.__str__()
                         else extracted_tb[counter].lineno,
 
                         highlight_lines={extracted_tb[counter].lineno - 3}
-                        if extracted_tb[counter].filename == get_file_path(PYFILE_INFO)
+                        if extracted_tb[counter].filename == MIRROR_FILE.__str__()
                         else {extracted_tb[counter].lineno},
 
                         background_color='default', theme='gruvbox-dark'
@@ -243,19 +242,19 @@ def gen_trace_with_locals(**exc_info) -> list:
         trace = Group(
             Panel(
                 Group(
-                    f"File: [bold default]{get_file_path(py_file_info=PYFILE_INFO)}[/]"
-                    if exc_info['traceback_'].tb_frame.f_code.co_filename == MIRROR_FILE
+                    f"File: [bold default]{get_file_path(py_file_info=PYFILE_INFO)[0]}[/]"
+                    if exc_info['traceback_'].tb_frame.f_code.co_filename == MIRROR_FILE.__str__()
                     else f"File: [bold default]{exc_info['traceback_'].tb_frame.f_code.co_filename}[/]",
                     '',
 
                     Syntax(
                         code=extracted_tb[counter].line, lexer='python',
                         line_numbers=True, start_line=extracted_tb[counter].lineno - 3
-                        if extracted_tb[counter].filename == get_file_path(PYFILE_INFO)
+                        if extracted_tb[counter].filename == MIRROR_FILE.__str__()
                         else extracted_tb[counter].lineno,
 
                         highlight_lines={extracted_tb[counter].lineno - 3}
-                        if extracted_tb[counter].filename == get_file_path(PYFILE_INFO)
+                        if extracted_tb[counter].filename == MIRROR_FILE.__str__()
                         else {extracted_tb[counter].lineno},
 
                         background_color='default', theme='gruvbox-dark'
@@ -267,7 +266,7 @@ def gen_trace_with_locals(**exc_info) -> list:
                         for var, value in locals_[extracted_tb[counter].name].items()]),
                         expand=False, title='locals', style='yellow'
                     )
-                    if extracted_tb[counter].filename == get_file_path(PYFILE_INFO)
+                    if extracted_tb[counter].filename == MIRROR_FILE.__str__()
                     else '[bold underline yellow]NO LOCALS WERE FOUND IN THIS TRACE[/]'
                 )
 
@@ -297,11 +296,11 @@ def gen_inner(**exc_info) -> list:
     )
 
     while exc_info['traceback_']:
-        if extracted_tb[counter].filename == get_file_path(PYFILE_INFO):
+        if extracted_tb[counter].filename == MIRROR_FILE.__str__():
             trace = Group(
                 Panel(
                     Group(
-                        f"File: [bold default]{get_file_path(PYFILE_INFO)}[/]\n",
+                        f"File: [bold default]{get_file_path(PYFILE_INFO)[0]}[/]\n",
 
                         Syntax(
                             code=extracted_tb[counter].line, lexer='python',
@@ -343,11 +342,11 @@ def gen_inner_with_locals(**exc_info) -> list:
                 var not in ['display_error_message'] and not isinstance(value, ModuleType)
         }
 
-        if extracted_tb[counter].filename == get_file_path(PYFILE_INFO):
+        if extracted_tb[counter].filename == MIRROR_FILE.__str__():
             trace = Group(
                 Panel(
                     Group(
-                        f"File: [bold default]{get_file_path(PYFILE_INFO)}[/]\n",
+                        f"File: [bold default]{get_file_path(PYFILE_INFO)[0]}[/]\n",
 
                         Syntax(
                             code=extracted_tb[counter].line, lexer='python',
@@ -389,7 +388,7 @@ def gen_locals(**exc_info) -> list:
                var not in ['display_error_message'] and not isinstance(value, ModuleType)
         }
 
-        if extracted_tb[counter].filename == get_file_path(PYFILE_INFO):
+        if extracted_tb[counter].filename == MIRROR_FILE.__str__():
             local = Group(
                 Panel(
                     Group(
@@ -422,7 +421,7 @@ def gen_search(**exc_info) -> None:
     else:
         posts: dict = {
             item.get('title'): item.get('link')
-            for item in response.json().get(['items'])
+            for item in response.json().get('items')
             if item.get('is_answered')
         }
 
@@ -437,9 +436,9 @@ def gen_search(**exc_info) -> None:
         cprint(search_box)
 
 
-def get_output(python_interpreter: str, output_file: Path) -> None:
+def get_output(python_interpreter: str, mirror_file: Path, args: list, output_file: Path) -> None:
     with open(output_file, "w+") as output_file_:
-        subprocess.call([python_interpreter, output_file.__str__()], stdout=output_file_)
+        subprocess.call([python_interpreter, mirror_file.__str__(), *args], stdout=output_file_)
 
 
 def interpret(python_interpreter: str, mirror_file: Path, args: list) -> None:
@@ -449,56 +448,73 @@ def interpret(python_interpreter: str, mirror_file: Path, args: list) -> None:
 def display_error_message(exc_type: type, exc_message: Exception, traceback_: TracebackType) -> None:
     recipe: list = read_recipe(recipe_file=Path('recipe.pymgrcp'))
 
+    funcs: dict = {
+        'type': gen_type, 'message': gen_message,
+        'file': gen_file, 'scope': gen_scope,
+        'line': gen_line, 'code': gen_code,
+        'trace': gen_trace, 'trace_with_locals': gen_trace_with_locals,
+        'inner': gen_inner, 'inner_with_locals': gen_inner_with_locals,
+        'locals': gen_locals,'search': gen_search
+    }
+
+    search_status: bool = False
+
+    if 'search' in recipe:
+        search_status = True
+        recipe.remove('search')
+
     template: list = [
-        list_() for func in recipe
-        for list_ in func(
+        list_ for func in recipe
+        for list_ in funcs[func](
             exc_type=exc_type,
             exc_message=exc_message,
             traceback_=traceback_
         )
     ]
 
-    cprint(Panel(Group(*template), title='Exception', style='red', padding=(0, 1, 0, 1), highlight=False))
+    if template:
+        cprint(Panel(Group(*template), title='Exception', style='red', padding=(0, 1, 0, 1), highlight=False))
+
+    if search_status:
+        gen_search(
+            exc_type=exc_type,
+            exc_message=exc_message,
+            traceback_=traceback_
+        )
 
 
-def prioritizing_options(options: dict) -> list[Callable]:
+def prioritizing_options(options: dict) -> list[str]:
 
-    prioritized_options, draft_options, available_options, second_level_options = [], [], [
+    prioritized_options, draft_options, available_options = [], [], [
         option for option, value in options.items() if value
-    ], {
-        'type': gen_type,
-        'message': gen_message,
-        'file': gen_file,
-        'scope': gen_scope,
-        'line': gen_line,
-        'code': gen_code,
-        'locals': gen_locals,
-        'search': gen_search
-    }
+    ]
 
     for option in available_options:
         if option == 'trace' and 'locals' in available_options:
             if gen_trace in prioritized_options:
-                prioritized_options.remove(gen_trace)
+                prioritized_options.remove(option)
 
-            prioritized_options.append(gen_trace_with_locals)
+            prioritized_options.append('trace_with_locals')
 
         elif option == 'inner' and 'locals' in available_options:
             if gen_inner in prioritized_options:
-                prioritized_options.remove(gen_inner)
+                prioritized_options.remove(option)
 
-            prioritized_options.append(gen_inner_with_locals)
+            prioritized_options.append('inner_with_locals')
 
         elif option == 'trace':
             if gen_trace_with_locals not in prioritized_options:
-                prioritized_options.append(gen_trace)
+                prioritized_options.append(option)
 
         elif option == 'inner':
             if gen_inner_with_locals not in prioritized_options:
-                prioritized_options.append(gen_inner)
+                prioritized_options.append(option)
+
+        elif option == 'search':
+            prioritized_options.append(option)
 
         else:
-            draft_options.append(second_level_options.get(option))
+            draft_options.append(option)
 
     if not prioritized_options:
         prioritized_options.extend(draft_options)
@@ -544,7 +560,83 @@ def main(**options):
     more information: https://github.com/mimseyedi/pymg
     """
 
-    pass
+    if options['version'] and not options['python_file']:
+        click.echo(get_version())
+
+    else:
+        if not options['python_file']:
+            click.echo("Usage: pymg [OPTIONS] [PYTHON_FILE]...\nTry 'pymg --help' for help.\n\nError: Missing argument 'PYTHON_FILE...'.")
+
+        else:
+            response, content = pyfile_path_validator(py_file=Path(options['python_file'][0]))
+
+            if response:
+                if options['syntax']:
+                    response, content = check_syntax(
+                        source_file=options['python_file'][0],
+                        python_interpreter=sys.executable
+                    )
+
+                    cprint(f'[bold green]{content}[/]') if response \
+                        else display_syntax_error(syntax_err=content)
+
+                else:
+                    response, content = check_syntax(
+                        source_file=options['python_file'][0],
+                        python_interpreter=sys.executable
+                    )
+
+                    if response:
+                        filtered_options: dict = {
+                            option: value
+                            for option, value in options.items()
+                            if option not in [
+                                'python_file', 'syntax', 'output', 'version', 'recent'
+                            ]
+                        }
+
+                        recipe: list = prioritizing_options(options=filtered_options)
+
+                        if recipe:
+                            write_recipe(recipe_file=RECIPE_FILE, recipe_data=recipe)
+
+                            write_file_info(py_file_info=PYFILE_INFO, file_path=options['python_file'])
+
+                        else:
+                            write_recipe(recipe_file=RECIPE_FILE, recipe_data=['inner_with_locals'])
+
+                        mk_mirror_file(
+                            mirror_file=MIRROR_FILE,
+                            source=read_source(Path(options['python_file'][0])),
+                            header=gen_mirror_header()
+                        )
+
+                        if options['output'] is not None:
+                            output_file: Path = Path(options['output'])
+                            if not output_file.exists():
+                                if output_file.__str__().endswith('.txt'):
+                                    get_output(
+                                        python_interpreter=sys.executable,
+                                        mirror_file=MIRROR_FILE,
+                                        args=options['python_file'][1:],
+                                        output_file=options['output']
+                                    )
+
+                                else:
+                                    cprint("[bold red]Error:[/] Writing output to text file was not successful!\nThe selected path must be the path of a file with a .txt suffix.")
+                            else:
+                                cprint("[bold red]Error:[/] Writing output to text file was not successful!\nA file with this name already exists in this path!")
+
+                        else:
+                            interpret(
+                                python_interpreter=sys.executable,
+                                mirror_file=MIRROR_FILE,
+                                args=options['python_file'][1:]
+                            )
+                    else:
+                        display_syntax_error(syntax_err=content)
+            else:
+                cprint(content)
 
 
 if __name__ == '__main__':
