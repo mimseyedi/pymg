@@ -665,8 +665,22 @@ def get_output(python_interpreter: str, mirror_file: Path, args: list, output_fi
     :return: None
     """
 
-    with open(output_file, "w+") as output_file_:
-        subprocess.call([python_interpreter, mirror_file.__str__(), *args], stdout=output_file_)
+    if output_file.__str__().endswith('.txt') and not output_file.is_dir():
+        if not output_file.exists():
+
+            with open(output_file, "w+") as output_file_:
+                subprocess.call(
+                    [
+                        python_interpreter, mirror_file.__str__(), *args
+
+                    ], stdout=output_file_
+                )
+        else:
+            cprint("[bold red]Error:[/] Writing output to text file was not successful!")
+            cprint("A file with this name already exists in this path!")
+    else:
+        cprint("[bold red]Error:[/] Writing output to text file was not successful!")
+        cprint("The selected path must be the path of a file with a .txt suffix.")
 
 
 def interpret(python_interpreter: str, mirror_file: Path, args: list) -> None:
@@ -885,19 +899,12 @@ def main(**options):
 
                         if options['output'] is not None:
                             output_file: Path = Path(options['output'])
-                            if not output_file.exists():
-                                if output_file.__str__().endswith('.txt'):
-                                    get_output(
-                                        python_interpreter=sys.executable,
-                                        mirror_file=MIRROR_FILE,
-                                        args=options['python_file'][1:],
-                                        output_file=options['output']
-                                    )
-
-                                else:
-                                    cprint("[bold red]Error:[/] Writing output to text file was not successful!\nThe selected path must be the path of a file with a .txt suffix.")
-                            else:
-                                cprint("[bold red]Error:[/] Writing output to text file was not successful!\nA file with this name already exists in this path!")
+                            get_output(
+                                python_interpreter=sys.executable,
+                                mirror_file=MIRROR_FILE,
+                                args=options['python_file'][1:],
+                                output_file=output_file
+                            )
 
                         else:
                             interpret(
