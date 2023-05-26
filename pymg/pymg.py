@@ -247,10 +247,10 @@ def gen_file(**exc_info: type|Exception|TracebackType) -> list:
     :return: list
     """
 
-    py_file_path: str = get_file_path(py_file_info=PYFILE_INFO)[0]
+    source_path: str = get_file_path(py_file_info=PYFILE_INFO)[0]
 
     return [
-        f"[yellow]File ❱[/] [bold default]{py_file_path}[/]"
+        f"[yellow]File ❱[/] [bold default]{source_path}[/]"
     ]
 
 
@@ -788,15 +788,15 @@ def prioritizing_options(options: dict) -> list[str]:
             if gen_inner_with_locals not in prioritized_options:
                 prioritized_options.append(option)
 
-        elif option == 'search':
-            prioritized_options.append(option)
-
         else:
-            draft_options.append(option)
+            if option != 'search':
+                draft_options.append(option)
 
     if not prioritized_options:
         prioritized_options.extend(draft_options)
 
+    if 'search' in available_options:
+        prioritized_options.append('search')
 
     return prioritized_options
 
