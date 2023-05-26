@@ -8,12 +8,7 @@
 that is already **installed** on the system, and in **case of errors**, it displays
 the errors in **separate**, **diverse** and more **readable** forms.
 
-## How to install?<a class="anchor" id="install"></a>
-Note that the **Python version** on your system must be `3.11 or higher` to be able to run **pymg**. (In the latest version of Python, more accurate and better error messages are generated)
-
-<a href="https://www.python.org/downloads/">Click here</a> to download the latest version of Python.
-
-You can easily use **pip** to install pymg:
+## How to install?
 ```
 python3 -m pip install pymg
 ```
