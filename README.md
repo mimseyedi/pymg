@@ -4,9 +4,7 @@
 
 ## Introduction
  **pymg** is a **CLI** tool that can interpret Python files and display errors in a
- more **optimized** and more **readable way**.
-
-This tool interprets the selected Python file using the **Python interpreter**
+ more **optimized** and more **readable way**. This tool interprets the selected Python file using the **Python interpreter**
 that is already **installed** on the system, and in **case of errors**, it displays
 the errors in **separate**, **diverse** and more **readable** forms.
 
