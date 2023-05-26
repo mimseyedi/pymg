@@ -110,7 +110,7 @@ def read_recipe(recipe_file: Path) -> list[str]:
     return recipe
 
 
-def get_source_info(source_info: Path) -> list:
+def get_source_info(source_info_file: Path) -> list:
     """
     The task of this function is to read information about the source file.
 
@@ -121,29 +121,29 @@ def get_source_info(source_info: Path) -> list:
     :return: list
     """
 
-    if source_info.exists():
-        with open(file=source_info, mode='rb') as source_info_:
-            source_information: list = pickle.load(source_info_)
+    if source_info_file.exists():
+        with open(file=source_info_file, mode='rb') as source_info_file_:
+            source_information: list = pickle.load(source_info_file_)
 
         return source_information
 
     return list()
 
 
-def write_file_info(py_file_info: Path, file_info: tuple) -> None:
+def write_source_info(source_info_file: Path, source_info: tuple) -> None:
     """
     The task of this function is to write the information of the main file (source) in a file.
 
     -Note: This is done so that the information of the original file (source) is replaced by the
     information of the mirror file during the creation of the template to display the error.
 
-    :param py_file_info: The path of the file that is supposed to keep the information of the main file (source).
-    :param file_info: Main file information (source) such as: file name and arguments.
+    :param source_info_file: The path of the file that is supposed to keep the information of the main file (source).
+    :param source_info: Main file information (source) such as: file name and arguments.
     :return: None
     """
 
-    with open(file=py_file_info, mode='wb') as py_file_info_:
-        pickle.dump(file_info, py_file_info_)
+    with open(file=source_info_file, mode='wb') as source_info_file_:
+        pickle.dump(source_info, source_info_file_)
 
 
 def pyfile_path_validator(py_file: Path) -> tuple[bool, str]:
@@ -250,7 +250,7 @@ def gen_file(**exc_info: type|Exception|TracebackType) -> list:
     :return: list
     """
 
-    source_path: str = get_source_info(source_info=PYFILE_INFO)[0]
+    source_path: str = get_source_info(source_info_file=PYFILE_INFO)[0]
 
     return [
         f"[yellow]File ❱[/] [bold default]{source_path}[/]"
@@ -355,7 +355,7 @@ def gen_trace(**exc_info: type|Exception|TracebackType) -> list:
         trace = Group(
             Panel(
                 Group(
-                    f"File: [bold default]{get_source_info(source_info=PYFILE_INFO)[0]}[/]"
+                    f"File: [bold default]{get_source_info(source_info_file=PYFILE_INFO)[0]}[/]"
                     if exc_info['traceback_'].tb_frame.f_code.co_filename == MIRROR_FILE.__str__()
                     else f"File: [bold default]{exc_info['traceback_'].tb_frame.f_code.co_filename}[/]",
                     '',
@@ -419,7 +419,7 @@ def gen_trace_with_locals(**exc_info: type|Exception|TracebackType) -> list:
         trace = Group(
             Panel(
                 Group(
-                    f"File: [bold default]{get_source_info(source_info=PYFILE_INFO)[0]}[/]"
+                    f"File: [bold default]{get_source_info(source_info_file=PYFILE_INFO)[0]}[/]"
                     if exc_info['traceback_'].tb_frame.f_code.co_filename == MIRROR_FILE.__str__()
                     else f"File: [bold default]{exc_info['traceback_'].tb_frame.f_code.co_filename}[/]",
                     '',
@@ -488,7 +488,7 @@ def gen_inner(**exc_info: type|Exception|TracebackType) -> list:
             trace = Group(
                 Panel(
                     Group(
-                        f"File: [bold default]{get_source_info(source_info=PYFILE_INFO)[0]}[/]\n",
+                        f"File: [bold default]{get_source_info(source_info_file=PYFILE_INFO)[0]}[/]\n",
 
                         Syntax(
                             code=extracted_tb[counter].line, lexer='python',
@@ -546,7 +546,7 @@ def gen_inner_with_locals(**exc_info: type|Exception|TracebackType) -> list:
             trace = Group(
                 Panel(
                     Group(
-                        f"File: [bold default]{get_source_info(source_info=PYFILE_INFO)[0]}[/]\n",
+                        f"File: [bold default]{get_source_info(source_info_file=PYFILE_INFO)[0]}[/]\n",
 
                         Syntax(
                             code=extracted_tb[counter].line, lexer='python',
@@ -878,7 +878,7 @@ def main(**options):
         recent_interpretation(
             python_interpreter=sys.executable,
             mirror_file=MIRROR_FILE,
-            args=get_source_info(source_info=PYFILE_INFO)[1:],
+            args=get_source_info(source_info_file=PYFILE_INFO)[1:],
             recipe_file=RECIPE_FILE
         )
 
@@ -919,7 +919,7 @@ def main(**options):
                         if recipe:
                             write_recipe(recipe_file=RECIPE_FILE, recipe_data=recipe)
 
-                            write_file_info(py_file_info=PYFILE_INFO, file_info=options['python_file'])
+                            write_source_info(source_info_file=PYFILE_INFO, source_info=options['python_file'])
 
                         else:
                             write_recipe(recipe_file=RECIPE_FILE, recipe_data=['inner_with_locals'])
