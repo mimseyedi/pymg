@@ -110,21 +110,24 @@ def read_recipe(recipe_file: Path) -> list[str]:
     return recipe
 
 
-def get_file_path(py_file_info: Path) -> list:
+def get_source_info(source_info: Path) -> list:
     """
     The task of this function is to read information about the source file.
 
     -Note: In order to preserve the information of the main file (source) while the mirror file is being
     interpreted, when an exception occurs, this information replaces the information of the mirror file.
 
-    :param py_file_info: The path of the file that contains the information of the main file (source).
+    :param source_info: The path of the file that contains the information of the main file (source).
     :return: list
     """
 
-    with open(file=py_file_info, mode='rb') as py_file_info_:
-        py_file_information: list = pickle.load(py_file_info_)
+    if source_info.exists():
+        with open(file=source_info, mode='rb') as source_info_:
+            source_information: list = pickle.load(source_info_)
 
-    return py_file_information
+        return source_information
+
+    return list()
 
 
 def write_file_info(py_file_info: Path, file_info: tuple) -> None:
@@ -247,7 +250,7 @@ def gen_file(**exc_info: type|Exception|TracebackType) -> list:
     :return: list
     """
 
-    source_path: str = get_file_path(py_file_info=PYFILE_INFO)[0]
+    source_path: str = get_source_info(source_info=PYFILE_INFO)[0]
 
     return [
         f"[yellow]File ❱[/] [bold default]{source_path}[/]"
@@ -352,7 +355,7 @@ def gen_trace(**exc_info: type|Exception|TracebackType) -> list:
         trace = Group(
             Panel(
                 Group(
-                    f"File: [bold default]{get_file_path(py_file_info=PYFILE_INFO)[0]}[/]"
+                    f"File: [bold default]{get_source_info(source_info=PYFILE_INFO)[0]}[/]"
                     if exc_info['traceback_'].tb_frame.f_code.co_filename == MIRROR_FILE.__str__()
                     else f"File: [bold default]{exc_info['traceback_'].tb_frame.f_code.co_filename}[/]",
                     '',
@@ -416,7 +419,7 @@ def gen_trace_with_locals(**exc_info: type|Exception|TracebackType) -> list:
         trace = Group(
             Panel(
                 Group(
-                    f"File: [bold default]{get_file_path(py_file_info=PYFILE_INFO)[0]}[/]"
+                    f"File: [bold default]{get_source_info(source_info=PYFILE_INFO)[0]}[/]"
                     if exc_info['traceback_'].tb_frame.f_code.co_filename == MIRROR_FILE.__str__()
                     else f"File: [bold default]{exc_info['traceback_'].tb_frame.f_code.co_filename}[/]",
                     '',
@@ -485,7 +488,7 @@ def gen_inner(**exc_info: type|Exception|TracebackType) -> list:
             trace = Group(
                 Panel(
                     Group(
-                        f"File: [bold default]{get_file_path(PYFILE_INFO)[0]}[/]\n",
+                        f"File: [bold default]{get_source_info(source_info=PYFILE_INFO)[0]}[/]\n",
 
                         Syntax(
                             code=extracted_tb[counter].line, lexer='python',
@@ -543,7 +546,7 @@ def gen_inner_with_locals(**exc_info: type|Exception|TracebackType) -> list:
             trace = Group(
                 Panel(
                     Group(
-                        f"File: [bold default]{get_file_path(PYFILE_INFO)[0]}[/]\n",
+                        f"File: [bold default]{get_source_info(source_info=PYFILE_INFO)[0]}[/]\n",
 
                         Syntax(
                             code=extracted_tb[counter].line, lexer='python',
@@ -801,6 +804,28 @@ def prioritizing_options(options: dict) -> list[str]:
     return prioritized_options
 
 
+def recent_interpretation(python_interpreter: str, mirror_file: Path, args: list, recipe_file: Path) -> None:
+    """
+    The task of this function is to interpret (execute) the last-recent registered operation.
+
+    :param python_interpreter: The Python interpreter that is supposed to interpret the mirror file.
+    :param mirror_file: The path of the mirror file to be interpreted.
+    :param args: Command Line arguments.
+    :param recipe_file: The path of the recipe file where the recipe information is stored.
+    :return: None
+    """
+
+    if mirror_file.exists() and recipe_file.exists():
+        interpret(
+            python_interpreter=python_interpreter,
+            mirror_file=mirror_file,
+            args=args
+        )
+
+    else:
+        cprint("[bold red]Error:[/] No information on the last operation is available.")
+
+
 def gen_mirror_header() -> list[str]:
     """
     The task of this function is to generate a header for the
@@ -848,6 +873,14 @@ def main(**options):
 
     if options['version'] and not options['python_file']:
         click.echo(get_version())
+
+    elif options['recent'] and not options['python_file']:
+        recent_interpretation(
+            python_interpreter=sys.executable,
+            mirror_file=MIRROR_FILE,
+            args=get_source_info(source_info=PYFILE_INFO)[1:],
+            recipe_file=RECIPE_FILE
+        )
 
     else:
         if not options['python_file']:
