@@ -9,9 +9,13 @@
 
 pymg is a CLI tool that can interpret Python files and display errors in a more readable form.
 
-This tool interprets the selected Python file using the Python interpreter
-that is already installed on the system, and in case of errors, it displays
-the errors in separate, diverse and more readable forms.
+This tool interprets the selected Python file using the Python interpreter that is already
+installed on the system, and in case of errors, it displays the errors in separate, diverse
+and more readable forms.
+
+In short, by replacing the exceptionhook from the sys module with a customized function that
+is called when an exception occurs, pymg can access information about exceptions and then display
+them in various and separated templates.
 
 pymg Github repository: https://github.com/mimseyedi/pymg
 """
@@ -24,11 +28,11 @@ import requests
 import traceback
 import subprocess
 from pathlib import Path
-from types import TracebackType, ModuleType
 from rich.panel import Panel
 from rich.console import Group
 from rich.syntax import Syntax
 from rich import print as cprint
+from types import TracebackType, ModuleType
 
 
 MIRROR_FILE: Path = Path(Path(__file__).parent, 'mirror.py')
@@ -37,6 +41,15 @@ PYFILE_INFO: Path = Path(Path(__file__).parent, 'pyfileinfo.pymginfo')
 
 
 def read_source(source_file: Path) -> list[str]:
+    """
+    The task of this function is to read the contents of the Python file
+    that the user has chosen for interpretation. This function returns the content
+    in the form of a list, whose elements are the codes of each line.
+
+    :param source_file: The path of the python file to be read.
+    :return: list[str]
+    """
+
     with open(file=source_file, mode='r') as source_file_:
         source: list = source_file_.readlines()
 
@@ -44,6 +57,19 @@ def read_source(source_file: Path) -> list[str]:
 
 
 def mk_mirror_file(mirror_file: Path, source: list[str], header: list[str]) -> None:
+    """
+    The task of this function is to create a mirror file with the help of source and header.
+
+    -What is a mirror file?
+    A mirror file is a file that contains a specific header and the content of the source file.
+    In short, the mirror file is a file that imitates the source file and is interpreted instead
+    so that pymg can receive possible exceptions.
+
+    :param mirror_file: The path of the mirror file that is supposed to be interpreted instead of the original file.
+    :param source: The path of the python file to be read.
+    :param header: The header that is supposed to stick to the beginning of the mirror file.
+    :return: None
+    """
 
     mirror_text: list = [*header, *source]
 
@@ -52,11 +78,32 @@ def mk_mirror_file(mirror_file: Path, source: list[str], header: list[str]) -> N
 
 
 def write_recipe(recipe_file: Path, recipe_data: list[str]) -> None:
+    """
+    The task of this function is to write the recipe in a file.
+
+    -Note: When an exception occurs, the function that is called determines
+    the template of the error with the help of these recipe and then displays it.
+
+    :param recipe_file: The path of the recipe file where the recipe information is supposed to be stored.
+    :param recipe_data: A list containing recipe information in string format.
+    :return: None
+    """
+
     with open(file=recipe_file, mode='wb') as recipe_file_:
         pickle.dump(recipe_data, recipe_file_)
 
 
 def read_recipe(recipe_file: Path) -> list[str]:
+    """
+    The task of this function is to read the file containing the recipe and return it.
+
+    -Note: The recipe is in the form of a list whose elements refer to the functions
+    that must be called to create the error template.
+
+    :param recipe_file: The path of the recipe file where the recipe information is stored.
+    :return: list[str]
+    """
+
     with open(file=recipe_file, mode='rb') as recipe_file_:
         recipe: list = pickle.load(recipe_file_)
 
@@ -64,18 +111,47 @@ def read_recipe(recipe_file: Path) -> list[str]:
 
 
 def get_file_path(py_file_info: Path) -> list:
+    """
+    The task of this function is to read information about the source file.
+
+    -Note: In order to preserve the information of the main file (source) while the mirror file is being
+    interpreted, when an exception occurs, this information replaces the information of the mirror file.
+
+    :param py_file_info: The path of the file that contains the information of the main file (source).
+    :return: list
+    """
+
     with open(file=py_file_info, mode='rb') as py_file_info_:
         py_file_information: list = pickle.load(py_file_info_)
 
     return py_file_information
 
 
-def write_file_info(py_file_info: Path, file_path: str) -> None:
+def write_file_info(py_file_info: Path, file_info: tuple) -> None:
+    """
+    The task of this function is to write the information of the main file (source) in a file.
+
+    -Note: This is done so that the information of the original file (source) is replaced by the
+    information of the mirror file during the creation of the template to display the error.
+
+    :param py_file_info: The path of the file that is supposed to keep the information of the main file (source).
+    :param file_info: Main file information (source) such as: file name and arguments.
+    :return: None
+    """
+
     with open(file=py_file_info, mode='wb') as py_file_info_:
-        pickle.dump(file_path, py_file_info_)
+        pickle.dump(file_info, py_file_info_)
 
 
 def pyfile_path_validator(py_file: Path) -> tuple[bool, str]:
+    """
+    The task of this function is to validate a Python file.
+    This function is to check the Python file that the user presents to pymg for interpretation.
+
+    :param py_file: The path of a python file.
+    :return: tuple[bool, str]
+    """
+
     if py_file.exists():
         if py_file.is_file() and py_file.__str__().endswith('.py'):
             return True, 'VALID'
@@ -86,6 +162,14 @@ def pyfile_path_validator(py_file: Path) -> tuple[bool, str]:
 
 
 def check_syntax(source_file: Path, python_interpreter: str) -> tuple[bool, str]:
+    """
+    The task of this function is to check the syntax of a Python file and return the check result.
+
+    :param source_file: The path of the python file that the user introduced to pymg.
+    :param python_interpreter: A Python interpreter that is supposed to do syntax checking.
+    :return: tuple[bool, str]
+    """
+
     syntax_err: str = subprocess.run(
         [python_interpreter, '-m', 'py_compile', source_file.__str__()],
         capture_output=True
@@ -95,6 +179,14 @@ def check_syntax(source_file: Path, python_interpreter: str) -> tuple[bool, str]
 
 
 def display_syntax_error(syntax_err: str) -> None:
+    """
+    The task of this function is to create and finally display
+    the error template that shows the syntax error message.
+
+    :param syntax_err: The syntax error message generated by the Python interpreter.
+    :return: None
+    """
+
     splitted_message: list = syntax_err[syntax_err.index(',') + 2:].split('\n')
 
     lineno: int = int(splitted_message[0].split()[-1])
@@ -112,19 +204,49 @@ def display_syntax_error(syntax_err: str) -> None:
     cprint(Panel(main_group, title='SyntaxError', style='red', padding=(1, 1, 1, 1), highlight=False))
 
 
-def gen_type(**exc_info) -> list:
+def gen_type(**exc_info: type|Exception|TracebackType) -> list:
+    """
+    The task of this function is to generate the exception type template.
+    Every exception that occurs has a type that helps the programmer to classify the error.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: list
+    """
+
     return [
-        f"[yellow]Exception Type ❱[/] [bold default]{exc_info['exc_type'].__name__}[/]"
+        f"[yellow]Exception Type ❱[/] [bold default]{exc_info.get('exc_type').__name__}[/]"
     ]
 
 
-def gen_message(**exc_info) -> list:
+def gen_message(**exc_info: type|Exception|TracebackType) -> list:
+    """
+    The task of this function is to generate the exception message template.
+    Every exception that occurs has a message that helps the programmer to identify and fix the error.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: list
+    """
+
     return [
-        f"[yellow]Exception Message ❱[/] [bold default]{exc_info['exc_message'].__str__()}[/]"
+        f"[yellow]Exception Message ❱[/] [bold default]{exc_info.get('exc_message').__str__()}[/]"
     ]
 
 
-def gen_file(**exc_info) -> list:
+def gen_file(**exc_info: type|Exception|TracebackType) -> list:
+    """
+    The task of this function is to generate a file template, which displays
+    the path of the file where the exception occurred.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: list
+    """
+
     py_file_path: str = get_file_path(py_file_info=PYFILE_INFO)[0]
 
     return [
@@ -132,8 +254,18 @@ def gen_file(**exc_info) -> list:
     ]
 
 
-def gen_scope(**exc_info) -> list:
-    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+def gen_scope(**exc_info: type|Exception|TracebackType) -> list:
+    """
+    The task of this function is to generate the scope template, which displays
+    the name of the scope in which the exception occurred.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: list
+    """
+
+    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
 
     for index in range(len(extracted_tb) - 1, -1, -1):
         if extracted_tb[index].filename == MIRROR_FILE.__str__():
@@ -145,8 +277,18 @@ def gen_scope(**exc_info) -> list:
     ]
 
 
-def gen_line(**exc_info) -> list:
-    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+def gen_line(**exc_info: type|Exception|TracebackType) -> list:
+    """
+    The task of this function is to generate the line template, which displays
+    the line number where the exception occurred.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: list
+    """
+
+    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
 
     for index in range(len(extracted_tb) - 1, -1, -1):
         if extracted_tb[index].filename == MIRROR_FILE.__str__():
@@ -158,8 +300,18 @@ def gen_line(**exc_info) -> list:
     ]
 
 
-def gen_code(**exc_info) -> list:
-    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+def gen_code(**exc_info: type|Exception|TracebackType) -> list:
+    """
+    The task of this function is to generate a code template, which displays
+    the code that generated the exception.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: list
+    """
+
+    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
 
     for index in range(len(extracted_tb) - 1, -1, -1):
         if extracted_tb[index].filename == MIRROR_FILE.__str__():
@@ -173,8 +325,19 @@ def gen_code(**exc_info) -> list:
     ]
 
 
-def gen_trace(**exc_info) -> list:
-    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+def gen_trace(**exc_info: type|Exception|TracebackType) -> list:
+    """
+    The task of this function is to generate a follow-up template.
+    In this format, the occurrence of the exception is tracked, and the information related
+    to each part that was influential in the occurrence of the exception will be displayed separately.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: list
+    """
+
+    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
 
     template, counter = [], 0
 
@@ -220,8 +383,19 @@ def gen_trace(**exc_info) -> list:
     return template
 
 
-def gen_trace_with_locals(**exc_info) -> list:
-    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+def gen_trace_with_locals(**exc_info: type|Exception|TracebackType) -> list:
+    """
+    The task of this function is to generate the trace template with local variables.
+    In this format, the occurrence of the exception is tracked and the information related to each part that affected
+    the occurrence of the exception will be displayed separately along with the local variables of each scope.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: list
+    """
+
+    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
 
     template, locals_, counter = [], {}, 0
 
@@ -283,8 +457,19 @@ def gen_trace_with_locals(**exc_info) -> list:
     return template
 
 
-def gen_inner(**exc_info) -> list:
-    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+def gen_inner(**exc_info: type|Exception|TracebackType) -> list:
+    """
+    The task of this function is to generate the inner trace template.
+    In this format, the exception occurred, limited to the internal space of the main file (source), is tracked, and the
+    information related to each part that had an effect on the occurrence of the exception will be displayed separately.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: list
+    """
+
+    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
 
     template, counter = [], 0
 
@@ -323,8 +508,20 @@ def gen_inner(**exc_info) -> list:
     return template
 
 
-def gen_inner_with_locals(**exc_info) -> list:
-    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+def gen_inner_with_locals(**exc_info: type|Exception|TracebackType) -> list:
+    """
+    The task of this function is to generate the inner trace template with local variables.
+    In this format, the exception occurred, limited to the internal space of the main file (source), is tracked, and the
+    information related to each part that had an effect on the occurrence of the exception will be displayed separately
+    along with the local variables of each scope.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: list
+    """
+
+    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
 
     template, locals_, counter = [], {}, 0
 
@@ -376,8 +573,19 @@ def gen_inner_with_locals(**exc_info) -> list:
     return template
 
 
-def gen_locals(**exc_info) -> list:
-    extracted_tb: list = traceback.extract_tb(exc_info['traceback_'])
+def gen_locals(**exc_info: type|Exception|TracebackType) -> list:
+    """
+    The task of this function is to generate the template of local variables.
+    Any exception that occurs can also refer to the last value of variables. This template
+    display the last value of each scope variable before the exception occurred.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: list
+    """
+
+    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
 
     template, locals_, counter = [], {}, 0
 
@@ -409,7 +617,17 @@ def gen_locals(**exc_info) -> list:
     return template
 
 
-def gen_search(**exc_info) -> None:
+def gen_search(**exc_info: type|Exception|TracebackType) -> None:
+    """
+    The task of this function is to find and search for a solution in stackoverflow for the exception that occurred with the
+    help of this site's APIs. Finally, the title and link of the related posts that received the answer will be displayed.
+
+    :param exc_info: The information related to the exception and error generated by the Python interpreter,
+                     which divides this information into three keys: exc_type, exc_message, and traceback_,
+                     each of which respectively contains: exception type, exception message, and traceback information.
+    :return: None
+    """
+
     try:
         response = requests.get(
             'https://api.stackexchange.com/' +
@@ -437,15 +655,51 @@ def gen_search(**exc_info) -> None:
 
 
 def get_output(python_interpreter: str, mirror_file: Path, args: list, output_file: Path) -> None:
+    """
+    The task of this function is to write the output generated by pymg in a text file.
+
+    :param python_interpreter: The Python interpreter that is supposed to interpret the mirror file.
+    :param mirror_file: The path of the mirror file to be interpreted.
+    :param args: Command line arguments.
+    :param output_file: The path of the text file where the output is to be written.
+    :return: None
+    """
+
     with open(output_file, "w+") as output_file_:
         subprocess.call([python_interpreter, mirror_file.__str__(), *args], stdout=output_file_)
 
 
 def interpret(python_interpreter: str, mirror_file: Path, args: list) -> None:
+    """
+    The task of this function is to interpret (execute) the mirror file.
+
+    :param python_interpreter: The Python interpreter that is supposed to interpret the mirror file.
+    :param mirror_file: The path of the mirror file to be interpreted.
+    :param args: Command line arguments.
+    :return: None
+    """
+
     subprocess.run([python_interpreter, mirror_file.__str__(), *args])
 
 
 def display_error_message(exc_type: type, exc_message: Exception, traceback_: TracebackType) -> None:
+    """
+    *** This is a customized exceptionhook function. ***
+
+    The task of this function is to pass the exception information to the functions mentioned in the recipe
+    and finally to display the templates that these functions return.
+
+    -Note: When the mirror file is executed, if an exception occurs, the exceptionhook function is called from
+    the sys module. But according to the header that the mirror file has, the exceptionhook function is replaced
+    with this function (display_error_message) and because of this, 'pymg' can receive information about the exception
+    and create messages in its own templates with the help of this replacement.
+
+    :param exc_type: The type of exception that occurred.
+    :param exc_message: The message of exception that occurred.
+    :param traceback_: A traceback that contains full information about the file where the exception occurred.
+    :return: None
+    """
+
     recipe: list = read_recipe(recipe_file=Path('recipe.pymgrcp'))
 
     funcs: dict = {
@@ -484,6 +738,16 @@ def display_error_message(exc_type: type, exc_message: Exception, traceback_: Tr
 
 
 def prioritizing_options(options: dict) -> list[str]:
+    """
+    The task of this function is to prioritize between recipes (options).
+    This is done for better formatting of messages so that the user can combine
+    recipes and produce different outputs.
+
+    :param options: The options from the main function are converted into a dictionary
+                    by the click module and are used here after the filter.
+
+    :return: list[str]
+    """
 
     prioritized_options, draft_options, available_options = [], [], [
         option for option, value in options.items() if value
@@ -524,6 +788,13 @@ def prioritizing_options(options: dict) -> list[str]:
 
 
 def gen_mirror_header() -> list[str]:
+    """
+    The task of this function is to generate a header for the
+    mirror file and return it in the form of a list.
+
+    :return: list[str]
+    """
+
     header: list = [
         'import sys\n',
         'from pymg import display_error_message\n',
@@ -534,6 +805,12 @@ def gen_mirror_header() -> list[str]:
 
 
 def get_version() -> str:
+    """
+    The task of this function is to return the current version of 'pymg'.
+
+    :return: str
+    """
+
     return '2.0.0'
 
 
@@ -600,7 +877,7 @@ def main(**options):
                         if recipe:
                             write_recipe(recipe_file=RECIPE_FILE, recipe_data=recipe)
 
-                            write_file_info(py_file_info=PYFILE_INFO, file_path=options['python_file'])
+                            write_file_info(py_file_info=PYFILE_INFO, file_info=options['python_file'])
 
                         else:
                             write_recipe(recipe_file=RECIPE_FILE, recipe_data=['inner_with_locals'])
