@@ -1,14 +1,19 @@
+![img1](https://raw.githubusercontent.com/mimseyedi/pymg/master/docs/images/pymg-poster.png)
 [![pypi](https://img.shields.io/pypi/v/redh.svg)](https://pypi.org/project/redh/) [![license](https://img.shields.io/github/license/mimseyedi/pymg.svg)](https://github.com/mimseyedi/pymg/blob/master/LICENSE)
-![img1](https://raw.githubusercontent.com/mimseyedi/pymg/master/docs/pymg-poster.png)
 
 
 ## Introduction
- **pymg** is a **CLI** tool that can interpret Python files and display errors in a
- more **optimized** and more **readable way**. This tool interprets the selected Python file using the **Python interpreter**
-that is already **installed** on the system, and in **case of errors**, it displays
-the errors in **separate**, **diverse** and more **readable** forms.
+ **pymg** is a **CLI** tool that can **interpret** Python files by the **Python interpreter** and display the error message in a **more readable** way if an **exception** occurs.
 
-## How to install?
+## Installation
+You can use **pip** to install:
 ```
 python3 -m pip install pymg
 ```
+
+## Documents
+<a href="">How does pymg work?</a>
+
+<a href="">How to use pymg?</a>
+
+<a href="">Contribution</a>
