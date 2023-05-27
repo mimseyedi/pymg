@@ -887,68 +887,72 @@ def main(**options):
             click.echo("Usage: pymg [OPTIONS] [PYTHON_FILE]...\nTry 'pymg --help' for help.\n\nError: Missing argument 'PYTHON_FILE...'.")
 
         else:
-            response, content = pyfile_path_validator(py_file=Path(options['python_file'][0]))
+            if options['version'] or options['recent']:
+                click.echo(
+                    "Usage: pymg [OPTIONS] [PYTHON_FILE]...\nTry 'pymg --help' for help.\n\nError: Two options --version and --recent cannot be used at this stage.")
+            else:
+                response, content = pyfile_path_validator(py_file=Path(options['python_file'][0]))
 
-            if response:
-                if options['syntax']:
-                    response, content = check_syntax(
-                        source_file=options['python_file'][0],
-                        python_interpreter=sys.executable
-                    )
-
-                    cprint(f'[bold green]{content}[/]') if response \
-                        else display_syntax_error(syntax_err=content)
-
-                else:
-                    response, content = check_syntax(
-                        source_file=options['python_file'][0],
-                        python_interpreter=sys.executable
-                    )
-
-                    if response:
-                        filtered_options: dict = {
-                            option: value
-                            for option, value in options.items()
-                            if option not in [
-                                'python_file', 'syntax', 'output', 'version', 'recent'
-                            ]
-                        }
-
-                        recipe: list = prioritizing_options(options=filtered_options)
-
-                        if recipe:
-                            write_recipe(recipe_file=RECIPE_FILE, recipe_data=recipe)
-
-                            write_source_info(source_info_file=PYFILE_INFO, source_info=options['python_file'])
-
-                        else:
-                            write_recipe(recipe_file=RECIPE_FILE, recipe_data=['inner_with_locals'])
-
-                        mk_mirror_file(
-                            mirror_file=MIRROR_FILE,
-                            source=read_source(Path(options['python_file'][0])),
-                            header=gen_mirror_header()
+                if response:
+                    if options['syntax']:
+                        response, content = check_syntax(
+                            source_file=options['python_file'][0],
+                            python_interpreter=sys.executable
                         )
 
-                        if options['output'] is not None:
-                            output_file: Path = Path(options['output'])
-                            get_output(
-                                python_interpreter=sys.executable,
+                        cprint(f'[bold green]{content}[/]') if response \
+                            else display_syntax_error(syntax_err=content)
+
+                    else:
+                        response, content = check_syntax(
+                            source_file=options['python_file'][0],
+                            python_interpreter=sys.executable
+                        )
+
+                        if response:
+                            filtered_options: dict = {
+                                option: value
+                                for option, value in options.items()
+                                if option not in [
+                                    'python_file', 'syntax', 'output', 'version', 'recent'
+                                ]
+                            }
+
+                            recipe: list = prioritizing_options(options=filtered_options)
+
+                            if recipe:
+                                write_recipe(recipe_file=RECIPE_FILE, recipe_data=recipe)
+
+                                write_source_info(source_info_file=PYFILE_INFO, source_info=options['python_file'])
+
+                            else:
+                                write_recipe(recipe_file=RECIPE_FILE, recipe_data=['inner_with_locals'])
+
+                            mk_mirror_file(
                                 mirror_file=MIRROR_FILE,
-                                args=options['python_file'][1:],
-                                output_file=output_file
+                                source=read_source(Path(options['python_file'][0])),
+                                header=gen_mirror_header()
                             )
 
+                            if options['output'] is not None:
+                                output_file: Path = Path(options['output'])
+                                get_output(
+                                    python_interpreter=sys.executable,
+                                    mirror_file=MIRROR_FILE,
+                                    args=options['python_file'][1:],
+                                    output_file=output_file
+                                )
+
+                            else:
+                                interpret(
+                                    python_interpreter=sys.executable,
+                                    mirror_file=MIRROR_FILE,
+                                    args=options['python_file'][1:]
+                                )
                         else:
-                            interpret(
-                                python_interpreter=sys.executable,
-                                mirror_file=MIRROR_FILE,
-                                args=options['python_file'][1:]
-                            )
-                    else:
-                        display_syntax_error(syntax_err=content)
-            else:
-                cprint(content)
+                            display_syntax_error(syntax_err=content)
+                else:
+                    cprint(content)
 
 
 if __name__ == '__main__':
