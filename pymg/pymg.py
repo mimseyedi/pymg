@@ -21,6 +21,7 @@ pymg Github repository: https://github.com/mimseyedi/pymg
 """
 
 
+import re
 import sys
 import click
 import pickle
@@ -317,6 +318,10 @@ def gen_line(**exc_info: type|Exception|TracebackType) -> list:
     ]
 
 
+def count_space(string: str) -> int:
+    return re.search('\S', string).start()
+
+
 def gen_code(**exc_info: type|Exception|TracebackType) -> list:
     """
     The task of this function is to generate a code template, which displays
@@ -333,12 +338,17 @@ def gen_code(**exc_info: type|Exception|TracebackType) -> list:
     for index in range(len(extracted_tb) - 1, -1, -1):
         if extracted_tb[index].filename == MIRROR_FILE.__str__():
             code: str = extracted_tb[index].line
+            lineno: int = extracted_tb[index].lineno
+            s_pointer, e_pointer = extracted_tb[index].colno, extracted_tb[index].end_colno
+            c_pointer: int = e_pointer - s_pointer
+            pointer = "^" * c_pointer
             break
 
     return [
         Syntax(
             code=code, lexer='python', background_color='default', theme='gruvbox-dark'
-        )
+        ),
+        f"{' ' * (s_pointer - count_space(read_source(source_file=get_source_info(source_info_file=SOURCE_INFO)[0])[lineno - 4]))}{pointer}"
     ]
 
 
