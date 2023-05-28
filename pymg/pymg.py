@@ -283,7 +283,7 @@ def gen_scope(**exc_info: type|Exception|TracebackType) -> list:
     :return: list
     """
 
-    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
+    extracted_tb: list[traceback.FrameSummary] = traceback.extract_tb(exc_info.get('traceback_'))
 
     for index in range(len(extracted_tb) - 1, -1, -1):
         if extracted_tb[index].filename == MIRROR_FILE.__str__():
@@ -306,7 +306,7 @@ def gen_line(**exc_info: type|Exception|TracebackType) -> list:
     :return: list
     """
 
-    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
+    extracted_tb: list[traceback.FrameSummary] = traceback.extract_tb(exc_info.get('traceback_'))
 
     for index in range(len(extracted_tb) - 1, -1, -1):
         if extracted_tb[index].filename == MIRROR_FILE.__str__():
@@ -318,8 +318,33 @@ def gen_line(**exc_info: type|Exception|TracebackType) -> list:
     ]
 
 
-def count_space(string: str) -> int:
-    return re.search('\S', string).start()
+def gen_pointer(tb: traceback.FrameSummary, with_line_number: bool=False) -> str:
+    """
+    The task of this function is to generate a pointer to the broken part of the code.
+
+    :param tb: A frame from Traceback.
+    :param with_line_number: Generating pointer according to line number or not.
+    :return: str
+    """
+
+    def count_space(string: str) -> int:
+        return re.search('\S', string).start()
+
+    lineno, start, end = tb.lineno - 4, tb.colno, tb.end_colno
+
+    if with_line_number:
+        space: str = " " * (start - count_space(
+            string=read_source(source_file=get_source_info(SOURCE_INFO)[0])[lineno]) + 4)
+        if len(str(lineno)) >= 2:
+            space_for_rich_syntax: str = " " * (len(str(lineno)) - 1)
+            space = space_for_rich_syntax + space
+    else:
+        space: str = " " * (start - count_space(
+            string=read_source(source_file=get_source_info(SOURCE_INFO)[0])[lineno]))
+
+    pointer: str = f"{space}[red]{'^' * (end - start)}[/]"
+
+    return pointer
 
 
 def gen_code(**exc_info: type|Exception|TracebackType) -> list:
@@ -333,22 +358,19 @@ def gen_code(**exc_info: type|Exception|TracebackType) -> list:
     :return: list
     """
 
-    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
+    extracted_tb: list[traceback.FrameSummary] = traceback.extract_tb(exc_info.get('traceback_'))
 
     for index in range(len(extracted_tb) - 1, -1, -1):
         if extracted_tb[index].filename == MIRROR_FILE.__str__():
             code: str = extracted_tb[index].line
-            lineno: int = extracted_tb[index].lineno
-            s_pointer, e_pointer = extracted_tb[index].colno, extracted_tb[index].end_colno
-            c_pointer: int = e_pointer - s_pointer
-            pointer = "^" * c_pointer
+            tb: traceback.FrameSummary = extracted_tb[index]
             break
 
     return [
         Syntax(
             code=code, lexer='python', background_color='default', theme='gruvbox-dark'
         ),
-        f"{' ' * (s_pointer - count_space(read_source(source_file=get_source_info(source_info_file=SOURCE_INFO)[0])[lineno - 4]))}{pointer}"
+        gen_pointer(tb=tb)
     ]
 
 
@@ -364,7 +386,7 @@ def gen_trace(**exc_info: type|Exception|TracebackType) -> list:
     :return: list
     """
 
-    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
+    extracted_tb: list[traceback.FrameSummary] = traceback.extract_tb(exc_info.get('traceback_'))
 
     template, counter = [], 0
 
@@ -395,7 +417,8 @@ def gen_trace(**exc_info: type|Exception|TracebackType) -> list:
                         else {extracted_tb[counter].lineno},
 
                         background_color='default', theme='gruvbox-dark'
-                    )
+                    ),
+                    gen_pointer(tb=extracted_tb[counter], with_line_number=True)
                 )
             , title=f'[bold]Trace[{counter + 1}] - {extracted_tb[counter].name}[/]', title_align='left',
             padding=(1, 1, 0, 1), style='color(172)')
@@ -422,7 +445,7 @@ def gen_trace_with_locals(**exc_info: type|Exception|TracebackType) -> list:
     :return: list
     """
 
-    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
+    extracted_tb: list[traceback.FrameSummary] = traceback.extract_tb(exc_info.get('traceback_'))
 
     template, locals_, counter = [], {}, 0
 
@@ -460,6 +483,7 @@ def gen_trace_with_locals(**exc_info: type|Exception|TracebackType) -> list:
 
                         background_color='default', theme='gruvbox-dark'
                     ),
+                    gen_pointer(tb=extracted_tb[counter], with_line_number=True),
                     '',
 
                     Panel(
@@ -496,7 +520,7 @@ def gen_inner(**exc_info: type|Exception|TracebackType) -> list:
     :return: list
     """
 
-    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
+    extracted_tb: list[traceback.FrameSummary] = traceback.extract_tb(exc_info.get('traceback_'))
 
     template, counter = [], 0
 
@@ -519,7 +543,8 @@ def gen_inner(**exc_info: type|Exception|TracebackType) -> list:
                             line_numbers=True, start_line=extracted_tb[counter].lineno - 3,
                             highlight_lines={extracted_tb[counter].lineno - 3},
                             background_color='default', theme='gruvbox-dark'
-                        )
+                        ),
+                        gen_pointer(tb=extracted_tb[counter], with_line_number=True)
                     )
 
                 , title=f'[bold]Trace[{counter + 1}] - {extracted_tb[counter].name}[/]', title_align='left',
@@ -548,7 +573,7 @@ def gen_inner_with_locals(**exc_info: type|Exception|TracebackType) -> list:
     :return: list
     """
 
-    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
+    extracted_tb: list[traceback.FrameSummary] = traceback.extract_tb(exc_info.get('traceback_'))
 
     template, locals_, counter = [], {}, 0
 
@@ -578,6 +603,7 @@ def gen_inner_with_locals(**exc_info: type|Exception|TracebackType) -> list:
                             highlight_lines={extracted_tb[counter].lineno - 3},
                             background_color='default', theme='gruvbox-dark'
                         ),
+                        gen_pointer(tb=extracted_tb[counter], with_line_number=True),
                         '',
 
                         Panel(
@@ -612,7 +638,7 @@ def gen_locals(**exc_info: type|Exception|TracebackType) -> list:
     :return: list
     """
 
-    extracted_tb: list = traceback.extract_tb(exc_info.get('traceback_'))
+    extracted_tb: list[traceback.FrameSummary] = traceback.extract_tb(exc_info.get('traceback_'))
 
     template, locals_, counter = [], {}, 0
 
