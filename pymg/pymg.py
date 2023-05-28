@@ -21,6 +21,7 @@ pymg Github repository: https://github.com/mimseyedi/pymg
 """
 
 
+import os
 import re
 import sys
 import click
@@ -332,17 +333,29 @@ def gen_pointer(tb: traceback.FrameSummary, with_line_number: bool=False) -> str
 
     lineno, start, end = tb.lineno - 4, tb.colno, tb.end_colno
 
+    inner = True
     if with_line_number:
-        space: str = " " * (start - count_space(
-            string=read_source(source_file=get_source_info(SOURCE_INFO)[0])[lineno]) + 4)
+        if tb.filename == MIRROR_FILE.__str__():
+            space: str = " " * (start - count_space(
+                string=read_source(source_file=get_source_info(SOURCE_INFO)[0])[lineno]) + 4)
+        else:
+            space: str = " " * 4
+            inner = False
+
         if len(str(lineno)) >= 2:
             space_for_rich_syntax: str = " " * (len(str(lineno)) - 1)
             space = space_for_rich_syntax + space
     else:
-        space: str = " " * (start - count_space(
-            string=read_source(source_file=get_source_info(SOURCE_INFO)[0])[lineno]))
+        if tb.filename == MIRROR_FILE.__str__():
+            space: str = " " * (start - count_space(
+                string=read_source(source_file=get_source_info(SOURCE_INFO)[0])[lineno]))
+        else:
+            space, inner = "", False
 
-    pointer: str = f"{space}[red]{'^' * (end - start)}[/]"
+    if inner:
+        pointer: str = f"{space}[red]{'^' * (end - start)}[/]"
+    else:
+        pointer: str = f"{space}[red]{'^' * len(tb.line)}[/]"
 
     return pointer
 
@@ -767,7 +780,7 @@ def display_error_message(exc_type: type, exc_message: Exception, traceback_: Tr
     :return: None
     """
 
-    recipe: list = read_recipe(recipe_file=Path('recipe.pymgrcp'))
+    recipe: list = read_recipe(recipe_file=RECIPE_FILE)
 
     funcs: dict = {
         'type': gen_type, 'message': gen_message,
@@ -983,11 +996,12 @@ def main(**options):
 
                             if recipe:
                                 write_recipe(recipe_file=RECIPE_FILE, recipe_data=recipe)
-
                             else:
                                 write_recipe(recipe_file=RECIPE_FILE, recipe_data=['inner_with_locals'])
 
-                            write_source_info(source_info_file=SOURCE_INFO, source_info=options['python_file'])
+                            source_info: tuple = (Path(os.getcwd(), options['python_file'][0]), *options['python_file'][1:])
+
+                            write_source_info(source_info_file=SOURCE_INFO, source_info=source_info)
 
                             mk_mirror_file(
                                 mirror_file=MIRROR_FILE,
