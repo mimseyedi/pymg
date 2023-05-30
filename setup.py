@@ -4,16 +4,15 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 README = (HERE / "README.md").read_text()
-install_requires = ['click', 'requests']
-dependency_links = ['click', 'requests']
+install_requires = ['rich', 'click', 'requests']
+dependency_links = ['rich', 'click', 'requests']
 
 
 setup (
  name = 'pymg',
- description = 'pymg is a CLI tool that can interpret Python files and display errors in a more optimized and more readable way.',
- version = '1.0.0',
+ description = 'pymg is a CLI tool that can interpret Python files by the Python interpreter and display the error message in a more readable way if an exception occurs.',
+ version = '2.0.0',
  packages = find_packages(),
- include_package_data = True,
  install_requires = install_requires,
  python_requires='>=3.11',
  entry_points='''
