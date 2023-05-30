@@ -37,11 +37,21 @@ import requests
 import traceback
 import subprocess
 from pathlib import Path
-from rich.panel import Panel
-from rich.console import Group
-from rich.syntax import Syntax
-from rich import print as cprint
 from types import TracebackType, ModuleType
+try:
+    from rich.panel import Panel
+    from rich.console import Group
+    from rich.syntax import Syntax
+    from rich import print as cprint
+except ModuleNotFoundError:
+    subprocess.run([sys.executable, "-m", "pip", "install", "rich"], stdout=subprocess.DEVNULL)
+except ImportError:
+    subprocess.run([sys.executable, "-m", "pip", "install", "rich"], stdout=subprocess.DEVNULL)
+finally:
+    from rich.panel import Panel
+    from rich.console import Group
+    from rich.syntax import Syntax
+    from rich import print as cprint
 
 
 MIRROR_FILE: Path = Path(Path(__file__).parent, 'mirror.py')
