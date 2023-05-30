@@ -1,13 +1,18 @@
-![img1](https://raw.githubusercontent.com/mimseyedi/pymg/master/docs/images/pymg-poster.png)
 [![pypi](https://img.shields.io/pypi/v/redh.svg)](https://pypi.org/project/redh/) [![license](https://img.shields.io/github/license/mimseyedi/pymg.svg)](https://github.com/mimseyedi/pymg/blob/master/LICENSE)
+
+![img1](https://raw.githubusercontent.com/mimseyedi/pymg/master/docs/images/pymg-poster.png)
 
 
 ## Introduction
  **pymg** is a **CLI** tool that can **interpret** Python files by the **Python interpreter** and display the error message in a **more readable** way if an **exception** occurs.
 
-To understand how pymg works you can read <a href="https://github.com/mimseyedi/pymg/blob/master/docs/guide/how_does_pymg_work.md">here</a> and also to understand how to use pymg you can read <a href="https://github.com/mimseyedi/pymg/blob/master/docs/guide/how_to_use_pymg.md">here</a> and follow the examples.
+You can read the following documents to learn more about pymg:
 
-pymg is an open and free project. Any contribution is welcome. If you want to cooperate, you can do it from the <a href="https://github.com/mimseyedi/pymg/pulls">pull requests</a> section of the GitHub page.
+<a href="https://github.com/mimseyedi/pymg/blob/master/docs/guide/how_does_pymg_work.md">How does pymg work</a>
+
+<a href="https://github.com/mimseyedi/pymg/blob/master/docs/guide/how_to_use_pymg.md">How to use pymg</a>
+
+pymg is a free and open source project. Any contribution is welcome. You can do this by registering a pull request.
 
 
 ## Installation
