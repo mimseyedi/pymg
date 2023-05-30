@@ -17,7 +17,14 @@ In short, by replacing the exceptionhook from the sys module with a customized f
 is called when an exception occurs, pymg can access information about exceptions and then display
 them in various and separated templates.
 
-pymg Github repository: https://github.com/mimseyedi/pymg
+For more information about how pymg works:
+https://github.com/mimseyedi/pymg/blob/master/docs/guide/how_does_pymg_work.md
+
+For more information about how to use pymg:
+https://github.com/mimseyedi/pymg/blob/master/docs/guide/how_to_use_pymg.md
+
+pymg Github repository:
+https://github.com/mimseyedi/pymg
 """
 
 
@@ -941,6 +948,9 @@ def get_version() -> str:
 @click.option('-r', '--recent', is_flag=True, help="Redisplays the last operation performed.")
 @click.option('-v', '--version', is_flag=True, help='Displays the current version of pymg installed on the system.')
 def main(**options):
+    """
+    pymg is a CLI tool that can interpret Python files by the Python interpreter and display the error message in a more readable way if an exception occurs.
+    """
 
     if options['version'] and not options['python_file']:
         click.echo(get_version())
@@ -999,7 +1009,9 @@ def main(**options):
                             else:
                                 write_recipe(recipe_file=RECIPE_FILE, recipe_data=['inner_with_locals'])
 
-                            source_info: tuple = (Path(os.getcwd(), options['python_file'][0]), *options['python_file'][1:])
+                            source_info: tuple = (
+                                Path(os.getcwd(), options['python_file'][0]), *options['python_file'][1:]
+                            )
 
                             write_source_info(source_info_file=SOURCE_INFO, source_info=source_info)
 
