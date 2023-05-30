@@ -1,4 +1,4 @@
-[![pypi](https://img.shields.io/pypi/v/redh.svg)](https://pypi.org/project/redh/) [![license](https://img.shields.io/github/license/mimseyedi/pymg.svg)](https://github.com/mimseyedi/pymg/blob/master/LICENSE)
+[![pypi](https://img.shields.io/pypi/v/pymg.svg)](https://pypi.org/project/pymg/) [![license](https://img.shields.io/github/license/mimseyedi/pymg.svg)](https://github.com/mimseyedi/pymg/blob/master/LICENSE)
 
 ![img1](https://raw.githubusercontent.com/mimseyedi/pymg/master/docs/images/pymg-poster.png)
 
