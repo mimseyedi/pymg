@@ -11,7 +11,7 @@ dependency_links = ['rich', 'click', 'requests']
 setup (
  name = 'pymg',
  description = 'pymg is a CLI tool that can interpret Python files by the Python interpreter and display the error message in a more readable way if an exception occurs.',
- version = '2.0.0',
+ version = '1.5.0',
  packages = find_packages(),
  install_requires = install_requires,
  python_requires='>=3.11',
