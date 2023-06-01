@@ -938,7 +938,7 @@ def get_version() -> str:
     :return: str
     """
 
-    return '2.0.0'
+    return '1.5.0'
 
 
 @click.command(context_settings={'help_option_names': ['-h', '--help']})
