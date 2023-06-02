@@ -892,7 +892,8 @@ def prioritizing_options(options: dict) -> list[str]:
     return prioritized_options
 
 
-def recent_interpretation(python_interpreter: str, mirror_file: Path, args: list, recipe_file: Path) -> None:
+def recent_interpretation(python_interpreter: str, mirror_file: Path, args: list,
+                          source_info_file: Path, recipe_file: Path) -> None:
     """
     The task of this function is to interpret (execute) the last-recent registered operation.
 
@@ -900,16 +901,22 @@ def recent_interpretation(python_interpreter: str, mirror_file: Path, args: list
     :param mirror_file: The path of the mirror file to be interpreted.
     :param args: Command Line arguments.
     :param recipe_file: The path of the recipe file where the recipe information is stored.
+    :param source_info_file: The path of the file that contains the information of the main file (source).
     :return: None
     """
 
-    if mirror_file.exists() and recipe_file.exists():
-        interpret(
-            python_interpreter=python_interpreter,
-            mirror_file=mirror_file,
-            args=args
-        )
+    if mirror_file.exists() and recipe_file.exists() and source_info_file.exists():
 
+        source: list = get_source_info(source_info_file=source_info_file)
+
+        if source and Path(source[0]).exists():
+            interpret(
+                python_interpreter=python_interpreter,
+                mirror_file=mirror_file,
+                args=args
+            )
+        else:
+            cprint("[bold red]Error:[/] The available information is corrupted.")
     else:
         cprint("[bold red]Error:[/] No information on the last operation is available.")
 
@@ -970,6 +977,7 @@ def main(**options):
             python_interpreter=sys.executable,
             mirror_file=MIRROR_FILE,
             args=get_source_info(source_info_file=SOURCE_INFO)[1:],
+            source_info_file=SOURCE_INFO,
             recipe_file=RECIPE_FILE
         )
 
