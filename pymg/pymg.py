@@ -28,6 +28,7 @@ https://github.com/mimseyedi/pymg
 """
 
 
+
 import os
 import re
 import sys
@@ -43,8 +44,6 @@ try:
     from rich.console import Group
     from rich.syntax import Syntax
     from rich import print as cprint
-except ModuleNotFoundError:
-    subprocess.run([sys.executable, "-m", "pip", "install", "rich"], stdout=subprocess.DEVNULL)
 except ImportError:
     subprocess.run([sys.executable, "-m", "pip", "install", "rich"], stdout=subprocess.DEVNULL)
 finally:
@@ -146,7 +145,7 @@ def get_source_info(source_info_file: Path) -> list:
 
         return source_information
 
-    return list()
+    return []
 
 
 def write_source_info(source_info_file: Path, source_info: tuple) -> None:
@@ -197,7 +196,7 @@ def check_syntax(source_file: Path, python_interpreter: str) -> tuple[bool, str]
         capture_output=True
     ).stderr.decode()
 
-    return (True, 'INTACT') if not syntax_err else (False, syntax_err)
+    return (False, syntax_err) if syntax_err else (True, 'INTACT')
 
 
 def display_syntax_error(source_file: Path, syntax_err: str) -> None:
@@ -232,8 +231,7 @@ def display_syntax_error(source_file: Path, syntax_err: str) -> None:
 
     cprint(Panel(
         main_group,
-        title='SyntaxError' if not syntax_err.startswith("Sorry: IndentationError:")
-        else 'IndentationError',
+        title='IndentationError' if syntax_err.startswith("Sorry: IndentationError:") else 'SyntaxError',
         style='red',
         padding=(1, 1, 1, 1),
         highlight=False
@@ -728,11 +726,18 @@ def gen_search(**exc_info: type|Exception|TracebackType) -> None:
 
         search_box = Panel(
             Group(
-                '\n'.join([f'[bold]{title}[/]\n[underline color(33)]{link}[/]\n'
-                for title, link in posts.items()])
-            )
-        , title=f'[bold]Search Result[/]', title_align='center',
-        padding=(1, 1, 0, 1), style='color(29)')
+                '\n'.join(
+                    [
+                        f'[bold]{title}[/]\n[underline color(33)]{link}[/]\n'
+                        for title, link in posts.items()
+                    ]
+                )
+            ),
+            title='[bold]Search Result[/]',
+            title_align='center',
+            padding=(1, 1, 0, 1),
+            style='color(29)',
+        )
 
         cprint(search_box)
 
@@ -814,16 +819,13 @@ def display_error_message(exc_type: type, exc_message: Exception, traceback_: Tr
         search_status = True
         recipe.remove('search')
 
-    template: list = [
-        list_ for func in recipe
+    if template := [
+        list_
+        for func in recipe
         for list_ in funcs[func](
-            exc_type=exc_type,
-            exc_message=exc_message,
-            traceback_=traceback_
+            exc_type=exc_type, exc_message=exc_message, traceback_=traceback_
         )
-    ]
-
-    if template:
+    ]:
         cprint(
             Panel(
                 Group(*template),
@@ -879,9 +881,8 @@ def prioritizing_options(options: dict) -> list[str]:
             if gen_inner_with_locals not in prioritized_options:
                 prioritized_options.append(option)
 
-        else:
-            if option != 'search':
-                draft_options.append(option)
+        elif option != 'search':
+            draft_options.append(option)
 
     if not prioritized_options:
         prioritized_options.extend(draft_options)
@@ -981,86 +982,85 @@ def main(**options):
             recipe_file=RECIPE_FILE
         )
 
-    else:
-        if not options['python_file']:
-            click.echo("Usage: pymg [OPTIONS] [PYTHON_FILE]...\nTry 'pymg --help' for help.\n\nError: Missing argument 'PYTHON_FILE...'.")
-
+    elif options['python_file']:
+        if options['version'] or options['recent']:
+            click.echo(
+                "Usage: pymg [OPTIONS] [PYTHON_FILE]...\nTry 'pymg --help' for help.\n\nError: Two options --version and --recent cannot be used at this stage.")
         else:
-            if options['version'] or options['recent']:
-                click.echo(
-                    "Usage: pymg [OPTIONS] [PYTHON_FILE]...\nTry 'pymg --help' for help.\n\nError: Two options --version and --recent cannot be used at this stage.")
-            else:
-                response, file_error_message = pyfile_path_validator(py_file=Path(options['python_file'][0]))
+            response, file_error_message = pyfile_path_validator(py_file=Path(options['python_file'][0]))
 
-                if response:
-                    if options['syntax']:
-                        response, content = check_syntax(
-                            source_file=options['python_file'][0],
-                            python_interpreter=sys.executable
-                        )
+            if response:
+                if options['syntax']:
+                    response, content = check_syntax(
+                        source_file=options['python_file'][0],
+                        python_interpreter=sys.executable
+                    )
 
-                        cprint(f'[bold green]{content}[/]') if response \
-                            else display_syntax_error(
-                            source_file=options['python_file'][0],
-                            syntax_err=content
-                        )
+                    cprint(f'[bold green]{content}[/]') if response \
+                        else display_syntax_error(
+                        source_file=options['python_file'][0],
+                        syntax_err=content
+                    )
 
-                    else:
-                        response, syntax_err = check_syntax(
-                            source_file=options['python_file'][0],
-                            python_interpreter=sys.executable
-                        )
-
-                        if response:
-                            filtered_options: dict = {
-                                option: value
-                                for option, value in options.items()
-                                if option not in [
-                                    'python_file', 'syntax', 'output', 'version', 'recent'
-                                ]
-                            }
-
-                            recipe: list = prioritizing_options(options=filtered_options)
-
-                            if recipe:
-                                write_recipe(recipe_file=RECIPE_FILE, recipe_data=recipe)
-                            else:
-                                write_recipe(recipe_file=RECIPE_FILE, recipe_data=['inner_with_locals'])
-
-                            source_info: tuple = (
-                                Path(os.getcwd(), options['python_file'][0]), *options['python_file'][1:]
-                            )
-
-                            write_source_info(source_info_file=SOURCE_INFO, source_info=source_info)
-
-                            mk_mirror_file(
-                                mirror_file=MIRROR_FILE,
-                                source=read_source(Path(options['python_file'][0])),
-                                header=gen_mirror_header()
-                            )
-
-                            if options['output'] is not None:
-                                output_file: Path = Path(options['output'])
-                                get_output(
-                                    python_interpreter=sys.executable,
-                                    mirror_file=MIRROR_FILE,
-                                    args=options['python_file'][1:],
-                                    output_file=output_file
-                                )
-
-                            else:
-                                interpret(
-                                    python_interpreter=sys.executable,
-                                    mirror_file=MIRROR_FILE,
-                                    args=options['python_file'][1:]
-                                )
-                        else:
-                            display_syntax_error(
-                                source_file=options['python_file'][0],
-                                syntax_err=syntax_err
-                            )
                 else:
-                    cprint(file_error_message)
+                    response, syntax_err = check_syntax(
+                        source_file=options['python_file'][0],
+                        python_interpreter=sys.executable
+                    )
+
+                    if response:
+                        filtered_options: dict = {
+                            option: value
+                            for option, value in options.items()
+                            if option not in [
+                                'python_file', 'syntax', 'output', 'version', 'recent'
+                            ]
+                        }
+
+                        if recipe := prioritizing_options(
+                            options=filtered_options
+                        ):
+                            write_recipe(recipe_file=RECIPE_FILE, recipe_data=recipe)
+                        else:
+                            write_recipe(recipe_file=RECIPE_FILE, recipe_data=['inner_with_locals'])
+
+                        source_info: tuple = (
+                            Path(os.getcwd(), options['python_file'][0]), *options['python_file'][1:]
+                        )
+
+                        write_source_info(source_info_file=SOURCE_INFO, source_info=source_info)
+
+                        mk_mirror_file(
+                            mirror_file=MIRROR_FILE,
+                            source=read_source(Path(options['python_file'][0])),
+                            header=gen_mirror_header()
+                        )
+
+                        if options['output'] is not None:
+                            output_file: Path = Path(options['output'])
+                            get_output(
+                                python_interpreter=sys.executable,
+                                mirror_file=MIRROR_FILE,
+                                args=options['python_file'][1:],
+                                output_file=output_file
+                            )
+
+                        else:
+                            interpret(
+                                python_interpreter=sys.executable,
+                                mirror_file=MIRROR_FILE,
+                                args=options['python_file'][1:]
+                            )
+                    else:
+                        display_syntax_error(
+                            source_file=options['python_file'][0],
+                            syntax_err=syntax_err
+                        )
+            else:
+                cprint(file_error_message)
+
+    else:
+        click.echo("Usage: pymg [OPTIONS] [PYTHON_FILE]...\nTry 'pymg --help' for help.\n\nError: Missing argument 'PYTHON_FILE...'.")
 
 
 if __name__ == '__main__':
