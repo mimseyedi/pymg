@@ -20,3 +20,26 @@ You can use **pip** to install:
 ```
 python3 -m pip install pymg
 ```
+
+
+## Example:
+Let's check the test.py file as an example:
+
+```python
+import sys
+
+def div(a, b):
+    return a / b
+
+print(div(int(sys.argv[1]), int(sys.argv[2])))
+```
+
+The task of this program is very simple. It passes the two values it receives from the command line arguments to the div function, and the div function divides them.
+
+Now let interpret the test.py file with pymg so that the ZeroDivisionError exception occurs:
+```
+$ pymg test.py 4 0
+```
+
+Output:
+![img1](https://raw.githubusercontent.com/mimseyedi/pymg/master/docs/images/exc-no-option.png)
