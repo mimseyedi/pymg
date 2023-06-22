@@ -135,7 +135,7 @@ pymg test.py 4 0
 Output:
 ![img1](https://raw.githubusercontent.com/mimseyedi/pymg/master/docs/images/exc-syntax.png)
 
-**IndentationErrors** and **TabError** will also be checked in the syntax checking stage:
+**IndentationError** and **TabError** will also be checked in the syntax checking stage:
 ```python
 import sys
 
