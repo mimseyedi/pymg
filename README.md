@@ -38,8 +38,7 @@ You can use **pip** to install:
 python3 -m pip install pymg
 ```
 
-<br />
-
+##  <a class="anchor" id="usage"></a>
 ![img1](https://raw.githubusercontent.com/mimseyedi/pymg/master/docs/images/how-to-use-pymg.png)
 
 ## Using the --help option <a class="anchor" id="help"></a>
