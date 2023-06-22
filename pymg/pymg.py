@@ -209,13 +209,24 @@ def display_syntax_error(source_file: Path, syntax_err: str) -> None:
     :return: None
     """
 
-    if not syntax_err.startswith("Sorry: IndentationError:"):
+    extract_digits = lambda string: int(''.join([char for char in string if char.isdigit()]))
+
+    if syntax_err.startswith("Sorry: TabError:"):
+        title: str = "TabError"
+        splitted_message: list = syntax_err.split("(")
+        lineno: int = extract_digits(splitted_message[-1].split(",")[-1])
+        code: str = read_source(source_file=source_file)[lineno - 1].strip()
+        pointer, message = "    ^", splitted_message[0][16:].strip()
+
+    elif not syntax_err.startswith("Sorry: IndentationError:"):
+        title: str = "SyntaxError"
         splitted_message: list = syntax_err[syntax_err.index(',') + 2:].split('\n')
-        lineno, code = int(splitted_message[0].split()[-1]), splitted_message[1].strip()
+        lineno, code = extract_digits(splitted_message[0].split()[-1]), splitted_message[1].strip()
         pointer, message = splitted_message[2], splitted_message[3][13:]
 
     else:
-        lineno: int = int(syntax_err.split(',')[-1][:-1].split()[-1])
+        title: str = "IndentationError"
+        lineno: int = extract_digits(syntax_err.split(',')[-1][:-1].split()[-1])
         code: str = read_source(source_file=source_file)[lineno - 1].strip()
         pointer, message = "    ^", syntax_err.split(":")[2].split("(")[0].strip()
 
@@ -231,7 +242,7 @@ def display_syntax_error(source_file: Path, syntax_err: str) -> None:
 
     cprint(Panel(
         main_group,
-        title='IndentationError' if syntax_err.startswith("Sorry: IndentationError:") else 'SyntaxError',
+        title=title,
         style='red',
         padding=(1, 1, 1, 1),
         highlight=False
