@@ -16,6 +16,9 @@ With the help of the (-h, --help) option, you can easily see how to use pymg and
 ```
 Usage: pymg [OPTIONS] [PYTHON_FILE]...
 
+  pymg is a CLI tool that can interpret Python files by the Python interpreter
+  and display the error message in a more readable way if an exception occurs.
+
 Options:
   -x, --syntax       It checks the syntax of the selected Python file. If
                      there is a syntax problem, an error message will be
@@ -101,7 +104,7 @@ pymg test.py 4 0
 Output:
 ![img1](https://raw.githubusercontent.com/mimseyedi/pymg/master/docs/images/exc-syntax.png)
 
-IndentationErrors will also be checked in the syntax checking stage:
+**IndentationErrors** and **TabError** will also be checked in the syntax checking stage:
 ```python
 import sys
 
