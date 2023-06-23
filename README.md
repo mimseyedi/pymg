@@ -38,6 +38,11 @@ You can use **pip** to install:
 python3 -m pip install pymg
 ```
 
+And also to upgrade:
+```
+python3 -m pip install --upgrade pymg
+```
+
 ##  <a class="anchor" id="usage"></a>
 ![img1](https://raw.githubusercontent.com/mimseyedi/pymg/master/docs/images/how-to-use-pymg.png)
 
