@@ -959,7 +959,7 @@ def get_version() -> str:
     :return: str
     """
 
-    return '1.1.1'
+    return '1.1.2'
 
 
 @click.command(context_settings={'help_option_names': ['-h', '--help']})
