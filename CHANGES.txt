@@ -1,0 +1,13 @@
+v1.0.0:
+    -First version of pymg.
+
+v1.1.0
+    -The recent_interpretation function was modified to check the existence of files before interpreting the previous operation.
+
+v1.1.1
+    -TabError was considered in the code review section before being interpreted.
+    -A lambda was written to extract numbers from the error message to avoid conversion errors.
+
+v1.1.2
+    -The problem of not recognizing the __file__ variable has been fixed.
+    -The problem of not recognizing the current space has been fixed.
