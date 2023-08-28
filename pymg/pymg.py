@@ -28,7 +28,6 @@ https://github.com/mimseyedi/pymg
 """
 
 
-
 import os
 import re
 import sys
@@ -84,15 +83,15 @@ def mk_mirror_file(mirror_file: Path, source: list[str], header: list[str]) -> N
     so that pymg can receive possible exceptions.
 
     :param mirror_file: The path of the mirror file that is supposed to be interpreted instead of the original file.
-    :param source: The path of the python file to be read.
+    :param source: The content of source file.
     :param header: The header that is supposed to stick to the beginning of the mirror file.
     :return: None
     """
 
-    mirror_text: list = [*header, *source]
+    mirror_text: str = ''.join([*header, *source])
 
     with open(file=mirror_file, mode='w+') as mirror_file_:
-        mirror_file_.write(''.join(mirror_text))
+        mirror_file_.write(mirror_text)
 
 
 def write_recipe(recipe_file: Path, recipe_data: list[str]) -> None:
@@ -337,7 +336,7 @@ def gen_line(**exc_info: type|Exception|TracebackType) -> list:
 
     for index in range(len(extracted_tb) - 1, -1, -1):
         if extracted_tb[index].filename == MIRROR_FILE.__str__():
-            lineno: str = str(extracted_tb[index].lineno - 3)
+            lineno: str = str(extracted_tb[index].lineno - 5)
             break
 
     return [
@@ -363,7 +362,7 @@ def gen_pointer(tb: traceback.FrameSummary, with_line_number: bool=False) -> str
     if with_line_number:
         if tb.filename == MIRROR_FILE.__str__():
             space: str = " " * (start - count_space(
-                string=read_source(source_file=get_source_info(SOURCE_INFO)[0])[lineno]) + 4)
+                string=read_source(source_file=MIRROR_FILE)[lineno]) + 4)
         else:
             space: str = " " * 4
             inner = False
@@ -374,7 +373,7 @@ def gen_pointer(tb: traceback.FrameSummary, with_line_number: bool=False) -> str
     else:
         if tb.filename == MIRROR_FILE.__str__():
             space: str = " " * (start - count_space(
-                string=read_source(source_file=get_source_info(SOURCE_INFO)[0])[lineno]))
+                string=read_source(source_file=MIRROR_FILE)[lineno]))
         else:
             space, inner = "", False
 
@@ -447,11 +446,11 @@ def gen_trace(**exc_info: type|Exception|TracebackType) -> list:
 
                     Syntax(
                         code=extracted_tb[counter].line, lexer='python',
-                        line_numbers=True, start_line=extracted_tb[counter].lineno - 3
+                        line_numbers=True, start_line=extracted_tb[counter].lineno - 5
                         if extracted_tb[counter].filename == MIRROR_FILE.__str__()
                         else extracted_tb[counter].lineno,
 
-                        highlight_lines={extracted_tb[counter].lineno - 3}
+                        highlight_lines={extracted_tb[counter].lineno - 5}
                         if extracted_tb[counter].filename == MIRROR_FILE.__str__()
                         else {extracted_tb[counter].lineno},
 
@@ -512,11 +511,11 @@ def gen_trace_with_locals(**exc_info: type|Exception|TracebackType) -> list:
 
                     Syntax(
                         code=extracted_tb[counter].line, lexer='python',
-                        line_numbers=True, start_line=extracted_tb[counter].lineno - 3
+                        line_numbers=True, start_line=extracted_tb[counter].lineno - 5
                         if extracted_tb[counter].filename == MIRROR_FILE.__str__()
                         else extracted_tb[counter].lineno,
 
-                        highlight_lines={extracted_tb[counter].lineno - 3}
+                        highlight_lines={extracted_tb[counter].lineno - 5}
                         if extracted_tb[counter].filename == MIRROR_FILE.__str__()
                         else {extracted_tb[counter].lineno},
 
@@ -579,8 +578,8 @@ def gen_inner(**exc_info: type|Exception|TracebackType) -> list:
 
                         Syntax(
                             code=extracted_tb[counter].line, lexer='python',
-                            line_numbers=True, start_line=extracted_tb[counter].lineno - 3,
-                            highlight_lines={extracted_tb[counter].lineno - 3},
+                            line_numbers=True, start_line=extracted_tb[counter].lineno - 5,
+                            highlight_lines={extracted_tb[counter].lineno - 5},
                             background_color='default', theme='gruvbox-dark'
                         ),
                         gen_pointer(tb=extracted_tb[counter], with_line_number=True)
@@ -638,8 +637,8 @@ def gen_inner_with_locals(**exc_info: type|Exception|TracebackType) -> list:
 
                         Syntax(
                             code=extracted_tb[counter].line, lexer='python',
-                            line_numbers=True, start_line=extracted_tb[counter].lineno - 3,
-                            highlight_lines={extracted_tb[counter].lineno - 3},
+                            line_numbers=True, start_line=extracted_tb[counter].lineno - 5,
+                            highlight_lines={extracted_tb[counter].lineno - 5},
                             background_color='default', theme='gruvbox-dark'
                         ),
                         gen_pointer(tb=extracted_tb[counter], with_line_number=True),
@@ -933,18 +932,21 @@ def recent_interpretation(python_interpreter: str, mirror_file: Path, args: list
         cprint("[bold red]Error:[/] No information on the last operation is available.")
 
 
-def gen_mirror_header() -> list[str]:
+def gen_mirror_header(source_path: Path) -> list[str]:
     """
     The task of this function is to generate a header for the
     mirror file and return it in the form of a list.
 
+    :param source_path: The path of the source file.
     :return: list[str]
     """
 
     header: list = [
-        'import sys\n',
+        'import sys, os\n',
         'from pymg import display_error_message\n',
-        'sys.excepthook = display_error_message\n'
+        'sys.excepthook = display_error_message\n',
+        f'__file__ = "{source_path}"\n',
+        f'os.chdir("{source_path.parent}")\n',
     ]
 
     return header
@@ -1044,7 +1046,7 @@ def main(**options):
                         mk_mirror_file(
                             mirror_file=MIRROR_FILE,
                             source=read_source(Path(options['python_file'][0])),
-                            header=gen_mirror_header()
+                            header=gen_mirror_header(source_path=Path(os.getcwd(), options['python_file'][0]))
                         )
 
                         if options['output'] is not None:
